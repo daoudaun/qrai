@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>QR AI · Accueil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#eef4f2; --surface:#fff; --surface2:#f6faf9; --ink:#0d1c1f; --muted:#56696c; --line:#d6e2df;
+  --accent:#0b8a7c; --accent-ink:#fff; --accent-soft:#d5efea; --bot:#f1f6f5; --me:#0b8a7c; --me-ink:#fff;
+  --warn:#a86408; --warn-soft:#fbeccf; --bad:#c23b3b; --bad-soft:#f9dede; --good:#12805c; --good-soft:#dcf2e8;
+  --f-display:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --f-body:"Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a1314; --surface:#111e20; --surface2:#15262a; --ink:#e4efed; --muted:#93a8a7; --line:#223639;
+  --accent:#2cc2ae; --accent-ink:#04201c; --accent-soft:#123c37; --bot:#182b2e; --me:#1d9f8f; --me-ink:#fff;
+  --warn:#f0b04a; --warn-soft:#3a2a0d; --bad:#ff7b7b; --bad-soft:#3d1a1a; --good:#44c996; --good-soft:#12352a; color-scheme:dark }}
+*{box-sizing:border-box} [hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+.wrap{max-width:640px;margin:0 auto;padding:16px 16px calc(24px + env(safe-area-inset-bottom))}
+.top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.logo{width:30px;height:30px;border-radius:9px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:800 12px var(--f-display);flex:0 0 auto}
+.top small{color:var(--muted);font-size:12px}
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:12px}
+h1{font:800 24px/1.15 var(--f-display);letter-spacing:-.01em;margin:0 0 6px}
+.welcome{color:var(--muted);margin:0}
+.verified{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:700;color:var(--good);background:var(--good-soft);padding:3px 9px;border-radius:999px;margin-bottom:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+h2{font:700 17px var(--f-display);margin:0 0 10px}
+.chat{display:flex;flex-direction:column;gap:10px;min-height:120px}
+.bubble{max-width:88%;padding:10px 13px;border-radius:16px;white-space:pre-wrap;overflow-wrap:anywhere;animation:pop .25s ease both}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}}
+@media (prefers-reduced-motion:reduce){.bubble{animation:none}}
+.bot{background:var(--bot);border-bottom-left-radius:5px;align-self:flex-start}
+.me{background:var(--me);color:var(--me-ink);border-bottom-right-radius:5px;align-self:flex-end}
+.bot.abst{border:1px dashed var(--warn)}
+.src{display:block;font-size:12px;color:var(--muted);margin-top:6px}
+.typing{display:inline-flex;gap:4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:b 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.ask{display:flex;gap:8px;margin-top:12px}
+.ask input{flex:1;min-width:0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.btn{border:0;border-radius:12px;padding:12px 16px;background:var(--accent);color:var(--accent-ink);font-weight:700;cursor:pointer}
+.btn[disabled]{opacity:.5;cursor:wait}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+input:focus,textarea:focus,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sugg button{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:6px 11px;font-size:14px;cursor:pointer}
+details{border-top:1px solid var(--line);padding:10px 0}
+details:first-of-type{border-top:0}
+summary{font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px}
+summary::after{content:"+";color:var(--accent);font-weight:800}
+details[open] summary::after{content:"–"}
+details p{white-space:pre-wrap;margin:8px 0 2px;color:var(--ink)}
+details .meta{font-size:12px;color:var(--muted)}
+label{display:block;font-weight:600;font-size:14px;margin:10px 0 5px}
+textarea,.field{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.msg{padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px}
+.msg.ok{background:var(--good-soft);color:var(--good)} .msg.err{background:var(--bad-soft);color:var(--bad)}
+.notice{font-size:13px;color:var(--muted);text-align:center;margin:16px 6px 0}
+.notice b{color:var(--ink)}
+.state{text-align:center;padding:40px 16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="logo" aria-hidden="true">QR</div><div><b>QR AI</b><br><small>Informations vérifiées par l'établissement</small></div></div>
+
+  <div id="loading" class="card state">Chargement…</div>
+  <div id="unavailable" class="card state" hidden>
+    <h1>Page indisponible</h1>
+    <p class="welcome">Ce code QR n'est pas actif ou a été désactivé. Renseignez-vous directement auprès de l'accueil.</p>
+  </div>
+
+  <main id="app" hidden>
+    <section class="hero">
+      <span class="verified">✓ Informations validées par l'établissement</span>
+      <h1 id="name"></h1>
+      <p class="welcome" id="welcome"></p>
+    </section>
+
+    <section class="card" aria-labelledby="chat-title">
+      <h2 id="chat-title">Posez votre question</h2>
+      <div class="chat" id="chat" aria-live="polite"></div>
+      <div class="sugg" id="sugg"></div>
+      <form class="ask" id="f-ask">
+        <input id="q" type="text" maxlength="500" autocomplete="off" placeholder="Ex. Quels sont vos horaires ?" aria-label="Votre question" required>
+        <button class="btn" type="submit" id="send">Envoyer</button>
+      </form>
+    </section>
+
+    <section class="card" id="faq-card" hidden>
+      <h2>Toutes les informations</h2>
+      <div id="faq"></div>
+    </section>
+
+    <section class="card">
+      <h2>Une remarque, une information manquante ?</h2>
+      <form id="f-sugg">
+        <label for="s-msg">Votre message à l'établissement</label>
+        <textarea id="s-msg" rows="3" maxlength="3000" required></textarea>
+        <label for="s-contact">Pour être recontacté (facultatif)</label>
+        <input id="s-contact" class="field" type="text" maxlength="200" placeholder="Téléphone ou e-mail">
+        <button class="btn" type="submit" style="margin-top:12px">Envoyer le message</button>
+      </form>
+      <div id="s-out"></div>
+    </section>
+
+    <p class="notice"><b>En cas d'urgence, rendez-vous immédiatement aux urgences ou appelez les secours.</b><br>
+    Les réponses proviennent uniquement des informations publiées par l'établissement ; elles ne remplacent pas une consultation.
+    Vos questions ne sont pas enregistrées.</p>
+  </main>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zvynitsffqtaiebtayda.supabase.co";
+const SUPABASE_KEY = "sb_publishable_JdO1h7Z0cB4ZMWZhat3mIQ_H6_6bAkT";
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const n = document.createElement(tag); Object.assign(n, props); kids.forEach(k => n.append(k)); return n; };
+const slug = (new URLSearchParams(location.search).get("c") || "").trim().toUpperCase();
+const history = [];
+const fmtDate = (d) => d ? new Date(d + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
+
+async function rpc(fn, args) {
+  const r = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, { method: "POST", headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY }, body: JSON.stringify(args) });
+  if (!r.ok) throw new Error("http " + r.status);
+  return r.json();
+}
+
+function bubble(text, who, extra) {
+  const b = el("div", { className: "bubble " + who + (extra && extra.abst ? " abst" : ""), textContent: text });
+  if (extra && extra.sources && extra.sources.length) {
+    extra.sources.forEach(s => b.append(el("span", { className: "src", textContent: "Source : « " + s.question + " », validée le " + fmtDate(s.validated_on) })));
+  }
+  $("chat").append(b); b.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  return b;
+}
+
+async function load() {
+  if (!/^[A-Z]{3}-[A-Z0-9]{4,8}$/.test(slug)) return showUnavailable();
+  let data;
+  try { data = await rpc("public_context", { p_slug: slug, p_locale: null }); } catch { return showUnavailable("Connexion impossible. Vérifiez votre accès à Internet puis rechargez la page."); }
+  if (!data || data.status !== "available") return showUnavailable();
+  document.title = data.name + " · QR AI";
+  $("name").textContent = data.name;
+  $("welcome").textContent = (data.welcome && data.welcome.fr) || "Bienvenue. Posez vos questions pratiques, je réponds avec les informations validées par l'établissement.";
+  const entries = (data.entries || []).filter(e => e.locale === "fr" || !e.locale);
+  if (entries.length) {
+    $("faq-card").hidden = false;
+    $("faq").replaceChildren(...entries.map(e => el("details", {}, el("summary", { textContent: e.question }),
+      el("p", { textContent: e.answer }), el("div", { className: "meta", textContent: "Validée le " + fmtDate(e.validated_on) }))));
+    entries.slice(0, 4).forEach(e => {
+      const b = el("button", { type: "button", textContent: e.question });
+      b.onclick = () => { $("q").value = e.question; $("f-ask").requestSubmit(); };
+      $("sugg").append(b);
+    });
+  }
+  bubble("Bonjour ! Je suis l'assistant de " + data.name + ". Je réponds uniquement avec les informations validées par l'établissement. Que souhaitez-vous savoir ?", "bot");
+  $("loading").hidden = true; $("app").hidden = false;
+}
+function showUnavailable(msg) {
+  $("loading").hidden = true; $("unavailable").hidden = false;
+  if (msg) $("unavailable").querySelector("p").textContent = msg;
+}
+
+const ERRORS = {
+  busy: "Le service reçoit beaucoup de questions aujourd'hui. Consultez les informations ci-dessous ou contactez directement l'établissement.",
+  not_configured: "Le chat n'est pas encore activé pour cet établissement. Consultez les informations ci-dessous.",
+  unavailable: "Ce code QR n'est plus actif.",
+  invalid_question: "Votre question doit faire entre 2 et 500 caractères."
+};
+$("f-ask").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const q = $("q").value.trim(); if (q.length < 2) return;
+  $("q").value = ""; $("send").disabled = true; $("sugg").hidden = true;
+  bubble(q, "me");
+  const wait = el("div", { className: "bubble bot" }, el("span", { className: "typing", ariaLabel: "Réponse en cours" }, el("i"), el("i"), el("i")));
+  $("chat").append(wait);
+  try {
+    const r = await fetch(SUPABASE_URL + "/functions/v1/ask", { method: "POST", headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+      body: JSON.stringify({ slug, question: q, history: history.slice(-6) }) });
+    const data = await r.json().catch(() => ({}));
+    wait.remove();
+    if (data.status === "ok") {
+      bubble(data.answer, "bot", { abst: data.abstained, sources: data.sources });
+      history.push({ role: "user", content: q }, { role: "assistant", content: data.answer });
+    } else {
+      bubble(ERRORS[data.status] || "Le service est momentanément indisponible. Réessayez dans un instant ou consultez les informations ci-dessous.", "bot", { abst: true });
+    }
+  } catch {
+    wait.remove(); bubble("Connexion impossible. Vérifiez votre accès à Internet.", "bot", { abst: true });
+  } finally { $("send").disabled = false; $("q").focus(); }
+});
+
+$("f-sugg").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const btn = ev.target.querySelector("button"); btn.disabled = true;
+  const key = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+  try {
+    const r = await rpc("submit_suggestion", { p_slug: slug, p_message: $("s-msg").value.trim(), p_locale: navigator.language || "fr", p_contact: $("s-contact").value.trim(), p_idempotency_key: key });
+    if (r.status === "received") {
+      ev.target.reset();
+      $("s-out").replaceChildren(el("div", { className: "msg ok", textContent: "Merci, votre message a bien été transmis (référence " + r.receipt + ")." }));
+    } else {
+      $("s-out").replaceChildren(el("div", { className: "msg err", textContent: "Le message n'a pas pu être transmis. Vérifiez son contenu." }));
+    }
+  } catch {
+    $("s-out").replaceChildren(el("div", { className: "msg err", textContent: "Connexion impossible. Réessayez." }));
+  } finally { btn.disabled = false; }
+});
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace QR AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#eef4f2; --surface:#fff; --surface2:#f6faf9; --ink:#0d1c1f; --muted:#56696c; --line:#d6e2df;
+  --accent:#0b8a7c; --accent-ink:#fff; --accent-soft:#d5efea; --coral:#ef6f45;
+  --good:#12805c; --good-soft:#dcf2e8; --warn:#a86408; --warn-soft:#fbeccf; --bad:#c23b3b; --bad-soft:#f9dede; --info:#3a55c7; --info-soft:#e1e6fb;
+  --shadow:0 20px 40px -24px rgba(10,50,45,.35);
+  --f-display:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --f-body:"Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a1314; --surface:#111e20; --surface2:#15262a; --ink:#e4efed; --muted:#93a8a7; --line:#223639;
+  --accent:#2cc2ae; --accent-ink:#04201c; --accent-soft:#123c37; --coral:#ff8b62;
+  --good:#44c996; --good-soft:#12352a; --warn:#f0b04a; --warn-soft:#3a2a0d; --bad:#ff7b7b; --bad-soft:#3d1a1a; --info:#8ea2ff; --info-soft:#1c2448;
+  --shadow:0 20px 40px -24px rgba(0,0,0,.7); color-scheme:dark }}
+*{box-sizing:border-box} [hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+header.top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:800 15px var(--f-display)}
+.brand{font:800 20px var(--f-display);letter-spacing:-.01em}
+.brand small{display:block;font:500 12px var(--f-body);color:var(--muted)}
+.top .sp{flex:1}
+.logo{flex:0 0 auto}.brand{white-space:nowrap}
+#who{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#logout{flex:0 0 auto;white-space:nowrap}
+@media (max-width:520px){#who{display:none}}
+body{overflow-x:hidden}
+h1,h2,h3{font-family:var(--f-display);letter-spacing:-.01em;margin:0 0 8px}
+h1{font-size:26px} h2{font-size:19px} h3{font-size:16px}
+p{margin:0 0 10px} .muted{color:var(--muted)} .small{font-size:13px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--shadow);animation:in .35s ease both}
+@keyframes in{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.card{animation:none}}
+label{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
+input[type=text],input[type=email],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.code-in{font:700 22px/1 ui-monospace,Menlo,monospace;letter-spacing:.3em;text-align:center}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row > *{flex:1 1 160px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 16px;border-radius:10px;border:1px solid transparent;background:var(--accent);color:var(--accent-ink);font-weight:700;margin-top:14px}
+.btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+.btn.small{padding:6px 10px;font-size:13px;margin-top:0}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn[disabled]{opacity:.55;cursor:wait}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.b-pending{background:var(--warn-soft);color:var(--warn)} .b-active{background:var(--good-soft);color:var(--good)} .b-suspended{background:var(--bad-soft);color:var(--bad)} .b-role{background:var(--info-soft);color:var(--info)}
+.org{display:flex;gap:12px;align-items:center;cursor:pointer;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px}
+.org:hover{border-color:var(--accent)}
+.org{flex-wrap:wrap}.org .n{font-weight:700;flex:1 1 100%}
+.list{list-style:none;padding:0;margin:8px 0 0}
+.list li{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.list li .grow{flex:1;min-width:160px;overflow-wrap:anywhere}
+.checks{display:flex;gap:14px;flex-wrap:wrap;margin-top:4px}
+.checks label{display:flex;gap:6px;align-items:center;font-weight:500;margin:0}
+.msg{padding:10px 12px;border-radius:10px;margin-top:12px;font-size:14px}
+.msg.err{background:var(--bad-soft);color:var(--bad)} .msg.ok{background:var(--good-soft);color:var(--good)} .msg.info{background:var(--info-soft);color:var(--info)}
+.bigcode{font:800 26px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.12em;padding:14px;border:2px dashed var(--accent);border-radius:12px;text-align:center;margin:10px 0;user-select:all}
+.back{background:none;border:0;color:var(--accent);font-weight:700;padding:0;margin-bottom:10px}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600}
+.tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.steps{counter-reset:s;padding:0;list-style:none;margin:6px 0 0}
+.steps li{counter-increment:s;padding-left:34px;position:relative;margin:8px 0}
+.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:800;font-size:13px}
+
+textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);font:inherit;color:inherit;resize:vertical}
+input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px}
+.chip{border:1px dashed var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600}
+.entry{display:block!important}
+.entry .head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.entry .q{font-weight:700;flex:1 1 200px}
+.entry .a{white-space:pre-wrap;color:var(--muted);font-size:14px;margin:6px 0}
+.entry .acts{display:flex;gap:6px;flex-wrap:wrap}
+.b-DRAFT{background:var(--surface2);color:var(--muted);border:1px solid var(--line)} .b-IN_REVIEW{background:var(--warn-soft);color:var(--warn)} .b-APPROVED{background:var(--info-soft);color:var(--info)} .b-PUBLISHED{background:var(--good-soft);color:var(--good)} .b-WITHDRAWN,.b-EXPIRED{background:var(--bad-soft);color:var(--bad)}
+.qr{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.qr canvas{width:132px;height:auto;border-radius:10px;background:#fff;border:1px solid var(--line)}
+.qr .slug{font:800 18px ui-monospace,Menlo,monospace;letter-spacing:.06em}
+.qr a.link{color:var(--accent);word-break:break-all;font-size:13px}
+@media (max-width:520px){.qr{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo" aria-hidden="true">QR</div>
+    <div class="brand">QR AI<small>Espace partenaire</small></div>
+    <div class="sp"></div>
+    <span id="who" class="small muted"></span>
+    <button id="logout" class="btn ghost small" hidden>Se déconnecter</button>
+  </header>
+
+  <!-- Connexion -->
+  <section id="v-login" hidden>
+    <div class="card">
+      <h1>Connexion</h1>
+      <p class="muted">Pas de mot de passe : vous recevez un e-mail de connexion à chaque fois. Le compte est créé automatiquement la première fois.</p>
+      <form id="f-email">
+        <label for="email">Votre adresse e-mail</label>
+        <input id="email" type="email" required autocomplete="email" placeholder="nom@exemple.com">
+        <button class="btn" type="submit">Recevoir l'e-mail de connexion</button>
+      </form>
+      <form id="f-code" hidden>
+        <p class="msg info" id="sent-to"></p>
+        <label for="code">Collez ici le lien de l'e-mail ou l'adresse de la page ouverte</label>
+        <input id="code" type="text" autocomplete="one-time-code" maxlength="4000" required placeholder="Collez ici">
+        <div class="small muted" style="margin-top:8px"><b>Deux façons de faire :</b><br>
+          • <b>Sans cliquer</b> : dans l'e-mail, clic droit sur le bouton « Sign in » → « Copier l'adresse du lien », puis collez ici.<br>
+          • <b>Si vous avez déjà cliqué</b> : une page « Ce site est inaccessible » (localhost) s'est ouverte. C'est normal. Cliquez dans la barre d'adresse de cette page, copiez toute l'adresse (Ctrl+A puis Ctrl+C), puis collez-la ici.</div>
+        <div class="row">
+          <button class="btn" type="submit">Valider</button>
+          <button class="btn ghost" type="button" id="change-email">Changer d'adresse</button>
+        </div>
+      </form>
+      <div id="login-msg"></div>
+    </div>
+  </section>
+
+  <!-- Accueil -->
+  <section id="v-home" hidden>
+    <div class="tabs" role="tablist" id="tabs" hidden>
+      <button role="tab" aria-selected="true" data-tab="mine">Mes organisations</button>
+      <button role="tab" aria-selected="false" data-tab="op">Opérateur</button>
+    </div>
+    <div id="t-mine">
+      <div class="card">
+        <h2>Mes organisations</h2>
+        <div id="orgs"></div>
+      </div>
+      <div class="card">
+        <h2>Inscrire une organisation</h2>
+        <p class="muted small">Entreprise, établissement de santé, institution, ONG ou professionnel. Vous en devenez le propriétaire.</p>
+        <form id="f-org">
+          <label for="o-name">Nom</label>
+          <input id="o-name" type="text" required minlength="2" maxlength="120" placeholder="Ex. Clinique Les Palmiers">
+          <div class="row">
+            <div><label for="o-kind">Type</label>
+              <select id="o-kind">
+                <option value="health">Santé</option><option value="company">Entreprise</option>
+                <option value="institution">Institution</option><option value="ngo">ONG / association</option>
+                <option value="pro">Professionnel indépendant</option>
+              </select></div>
+            <div><label for="o-country">Pays</label><select id="o-country"></select></div>
+          </div>
+          <div class="row" id="other-country" hidden>
+            <div><label for="o-cc">Code pays (2 lettres)</label><input id="o-cc" type="text" maxlength="2" placeholder="Ex. RW"></div>
+            <div><label for="o-cur">Monnaie (3 lettres)</label><input id="o-cur" type="text" maxlength="3" placeholder="Ex. RWF"></div>
+          </div>
+          <button class="btn" type="submit">Créer l'organisation</button>
+        </form>
+        <div id="org-msg"></div>
+      </div>
+      <div class="card">
+        <h2>J'ai reçu un code d'invitation</h2>
+        <p class="muted small">Le code ne fonctionne qu'avec l'adresse e-mail à laquelle il a été destiné.</p>
+        <form id="f-join" class="row">
+          <input id="j-code" type="text" required maxlength="20" placeholder="Code d'invitation" aria-label="Code d'invitation" style="text-transform:uppercase">
+          <button class="btn" type="submit" style="margin-top:0;flex:0 0 auto">Rejoindre</button>
+        </form>
+        <div id="join-msg"></div>
+      </div>
+    </div>
+    <div id="t-op" hidden>
+      <div class="card">
+        <h2>Paiements à vérifier</h2>
+        <p class="muted small">Avant de confirmer, retrouvez la référence de vente dans votre tableau de bord Chariow et vérifiez que le paiement est bien reçu.</p>
+        <ul class="list" id="pending"></ul>
+        <div id="op-msg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Organisation -->
+  <section id="v-org" hidden>
+    <button class="back" id="back">← Mes organisations</button>
+    <div class="card">
+      <div class="row" style="align-items:flex-start">
+        <div style="flex:1 1 auto"><h1 id="org-name"></h1><p class="muted small" id="org-meta"></p></div>
+        <span id="org-status" class="badge" style="flex:0 0 auto"></span>
+      </div>
+    </div>
+    <div class="card" id="pay-card" hidden>
+      <h2>Activer l'accès</h2>
+      <ol class="steps">
+        <li>Payez l'accès QR AI via le lien de paiement sécurisé.</li>
+        <li>Notez la <b>référence de vente</b> indiquée sur votre reçu.</li>
+        <li>Saisissez-la ci-dessous. L'équipe QR AI vérifie et active votre compte.</li>
+      </ol>
+      <div id="pay-link"></div>
+      <form id="f-act">
+        <label for="a-ref">Référence de vente</label>
+        <input id="a-ref" type="text" required minlength="3" maxlength="80" placeholder="Ex. référence figurant sur le reçu">
+        <button class="btn" type="submit">Envoyer pour vérification</button>
+      </form>
+      <div id="act-msg"></div>
+    </div>
+
+    <div class="card" id="pub-card">
+      <div class="row" style="align-items:center"><h2 style="flex:1 1 auto;margin:0">Page publique</h2><span id="ready" class="badge" style="flex:0 0 auto"></span></div>
+      <p class="muted small">C'est ce que voit le visiteur après avoir scanné le code QR : votre nom, un message d'accueil, vos fiches et le chat.</p>
+      <div id="pub-view"></div>
+      <form id="f-pub" hidden>
+        <label for="p-name">Nom affiché aux visiteurs</label>
+        <input id="p-name" type="text" required minlength="2" maxlength="120">
+        <label for="p-welcome">Message d'accueil</label>
+        <textarea id="p-welcome" rows="3" maxlength="600" placeholder="Ex. Bienvenue ! Posez vos questions pratiques : horaires, rendez-vous, services, tarifs…"></textarea>
+        <div class="row"><button class="btn" type="submit">Enregistrer</button><button class="btn ghost" type="button" id="pub-cancel">Annuler</button></div>
+      </form>
+      <div id="pub-msg"></div>
+    </div>
+
+    <div class="card" id="entries-card" hidden>
+      <h2>Fiches d'information</h2>
+      <p class="muted small">Le chat répond <b>uniquement</b> avec les fiches publiées. Une fiche passe par : brouillon → à valider → publiée. Rien n'est visible tant que ce n'est pas publié.</p>
+      <div id="entry-tpl" class="chips"></div>
+      <form id="f-entry" hidden>
+        <label for="e-key">Thème</label>
+        <input id="e-key" type="text" required maxlength="60" placeholder="Ex. Horaires">
+        <label for="e-q">Question type d'un visiteur</label>
+        <input id="e-q" type="text" required minlength="3" maxlength="300">
+        <label for="e-a">Réponse validée</label>
+        <textarea id="e-a" rows="5" required maxlength="20000"></textarea>
+        <label for="e-until">Valable jusqu'au</label>
+        <input id="e-until" type="date" required>
+        <div class="row"><button class="btn" type="submit">Enregistrer en brouillon</button><button class="btn ghost" type="button" id="entry-cancel">Annuler</button></div>
+      </form>
+      <button class="btn ghost" type="button" id="entry-new">+ Nouvelle fiche</button>
+      <div id="entry-msg"></div>
+      <ul class="list" id="entries"></ul>
+    </div>
+
+    <div class="card" id="qr-card" hidden>
+      <h2>Codes QR</h2>
+      <p class="muted small">Chaque code ouvre votre page publique. Vous pouvez en créer plusieurs (accueil, salle d'attente, maternité…) et en désactiver un à tout moment.</p>
+      <button class="btn" type="button" id="qr-new">Créer un code QR</button>
+      <div id="qr-msg"></div>
+      <div id="qrs"></div>
+      <p class="small muted" id="usage"></p>
+    </div>
+    <div class="card">
+      <h2>Équipe</h2>
+      <ul class="list" id="members"></ul>
+      <div id="mem-msg"></div>
+    </div>
+    <div class="card" id="invite-card" hidden>
+      <h2>Inviter un membre</h2>
+      <form id="f-inv">
+        <label for="i-email">Adresse e-mail de la personne</label>
+        <input id="i-email" type="email" required>
+        <label>Rôles</label>
+        <div class="checks">
+          <label><input type="checkbox" value="editor" checked> Rédaction</label>
+          <label><input type="checkbox" value="validator"> Validation</label>
+          <label><input type="checkbox" value="suggestions"> Suggestions</label>
+          <label><input type="checkbox" value="owner"> Propriétaire</label>
+        </div>
+        <button class="btn" type="submit">Créer le code d'invitation</button>
+      </form>
+      <div id="inv-out"></div>
+      <h3 style="margin-top:18px">Invitations en attente</h3>
+      <ul class="list" id="invites"></ul>
+    </div>
+  </section>
+
+  <p class="small muted" style="text-align:center;margin-top:30px">QR AI · données hébergées dans l'Union européenne (Paris)</p>
+</div>
+
+<script>
+const SUPABASE_URL = "https://zvynitsffqtaiebtayda.supabase.co";
+const SUPABASE_KEY = "sb_publishable_JdO1h7Z0cB4ZMWZhat3mIQ_H6_6bAkT";
+// Adresse publique de la page visiteur (GitHub Pages)
+const VISITOR_URL = "https://daoudaun.github.io/qrai/?c=";
+if (!window.supabase) { document.body.textContent = "Impossible de charger le module de connexion. Vérifiez votre accès à Internet puis rechargez la page."; throw new Error("supabase-js absent"); }
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const ROLES = { owner: "Propriétaire", editor: "Rédaction", validator: "Validation", suggestions: "Suggestions" };
+const KINDS = { health: "Santé", company: "Entreprise", institution: "Institution", ngo: "ONG", pro: "Professionnel" };
+const STATUS = { pending_payment: ["En attente de paiement", "b-pending"], active: ["Actif", "b-active"], suspended: ["Suspendu", "b-suspended"] };
+const COUNTRIES = [
+  ["BJ","Bénin","XOF"],["BF","Burkina Faso","XOF"],["CI","Côte d'Ivoire","XOF"],["GW","Guinée-Bissau","XOF"],["ML","Mali","XOF"],
+  ["NE","Niger","XOF"],["SN","Sénégal","XOF"],["TG","Togo","XOF"],["CM","Cameroun","XAF"],["CF","Centrafrique","XAF"],
+  ["CG","Congo","XAF"],["GA","Gabon","XAF"],["GQ","Guinée équatoriale","XAF"],["TD","Tchad","XAF"],["CD","RD Congo","CDF"],
+  ["GN","Guinée","GNF"],["NG","Nigeria","NGN"],["GH","Ghana","GHS"],["MA","Maroc","MAD"],["DZ","Algérie","DZD"],["TN","Tunisie","TND"],
+  ["MG","Madagascar","MGA"],["RW","Rwanda","RWF"],["KE","Kenya","KES"],["FR","France","EUR"],["BE","Belgique","EUR"],
+  ["CH","Suisse","CHF"],["CA","Canada","CAD"],["US","États-Unis","USD"],["GB","Royaume-Uni","GBP"]
+];
+
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}, ...kids) => { const n = document.createElement(tag); Object.assign(n, props); kids.forEach(k => n.append(k)); return n; };
+const say = (box, text, kind = "err") => { $(box).replaceChildren(text ? el("div", { className: "msg " + kind, textContent: text }) : ""); };
+const errText = (e) => {
+  const m = (e && (e.message || e.error_description)) || "Erreur inconnue";
+  if (/rate limit|too many/i.test(m)) return "Trop de tentatives. Patientez quelques minutes puis réessayez.";
+  if (/expired|invalid.*otp|token has expired|otp/i.test(m)) return "Code incorrect ou expiré. Demandez un nouveau code.";
+  if (/Failed to fetch|NetworkError/i.test(m)) return "Connexion impossible. Vérifiez votre accès à Internet.";
+  return m.charAt(0).toUpperCase() + m.slice(1);
+};
+async function busy(form, fn) {
+  const b = form.querySelector("button[type=submit]"); b.disabled = true;
+  try { await fn(); } finally { b.disabled = false; }
+}
+function show(view) { ["v-login","v-home","v-org"].forEach(v => $(v).hidden = v !== view); window.scrollTo(0, 0); }
+
+let me = null, current = null, isOperator = false;
+
+// ---------- Connexion par code ----------
+let pendingEmail = "";
+$("f-email").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  say("login-msg", "");
+  pendingEmail = $("email").value.trim().toLowerCase();
+  const redirect = /^https:/.test(location.protocol) ? location.origin + location.pathname : undefined;
+  const { error } = await sb.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true, emailRedirectTo: redirect } });
+  if (error) return say("login-msg", errText(error));
+  $("sent-to").textContent = (/^https:/.test(location.protocol) ? "Ouvrez l'e-mail et cliquez simplement sur « Sign in » : vous reviendrez ici, connecté. " : "") + "E-mail envoyé à " + pendingEmail + " (expéditeur Supabase, objet « Your sign-in link »). Regardez aussi dans les courriers indésirables.";
+  $("f-email").hidden = true; $("f-code").hidden = false; $("code").focus();
+}); });
+$("change-email").onclick = () => { $("f-code").hidden = true; $("f-email").hidden = false; say("login-msg", ""); };
+$("f-code").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const raw = $("code").value.trim();
+  let res;
+  if (/access_token=/.test(raw) && /refresh_token=/.test(raw)) {
+    const frag = new URLSearchParams(raw.slice(raw.indexOf("#") + 1).split("?")[0]);
+    const access_token = frag.get("access_token"), refresh_token = frag.get("refresh_token");
+    if (!access_token || !refresh_token) return say("login-msg", "Adresse incomplète. Copiez toute l'adresse de la page, du début à la fin.");
+    res = await sb.auth.setSession({ access_token, refresh_token });
+  } else if (/^https?:\/\//i.test(raw)) {
+    let u; try { u = new URL(raw); } catch { return say("login-msg", "Ce lien n'est pas valide. Copiez à nouveau l'adresse du lien depuis l'e-mail."); }
+    const hash = u.searchParams.get("token") || u.searchParams.get("token_hash");
+    const type = u.searchParams.get("type") || "magiclink";
+    if (!hash || !/^[A-Za-z0-9_-]{20,}$/.test(hash) || !/^(magiclink|signup|invite|email)$/.test(type)) return say("login-msg", "Ce lien ne vient pas d'un e-mail de connexion QR AI.");
+    res = await sb.auth.verifyOtp({ token_hash: hash, type });
+  } else {
+    res = await sb.auth.verifyOtp({ email: pendingEmail, token: raw.replace(/\s/g, ""), type: "email" });
+  }
+  const { error } = res;
+  if (error) return say("login-msg", errText(error));
+  $("code").value = "";
+}); });
+$("logout").onclick = async () => { await sb.auth.signOut(); };
+
+sb.auth.onAuthStateChange((_evt, session) => {
+  const user = session && session.user;
+  if (user && (!me || me.id !== user.id)) { me = user; setTimeout(enter, 0); }
+  if (!user) { me = null; current = null; $("who").textContent = ""; $("logout").hidden = true; $("f-code").hidden = true; $("f-email").hidden = false; show("v-login"); }
+});
+
+async function enter() {
+  $("who").textContent = me.email; $("logout").hidden = false;
+  const { data } = await sb.rpc("am_i_operator");
+  isOperator = data === true; $("tabs").hidden = !isOperator;
+  await loadOrgs(); show("v-home");
+}
+
+// ---------- Onglets ----------
+$("tabs").addEventListener("click", (ev) => {
+  const t = ev.target.closest("button[data-tab]"); if (!t) return;
+  $("tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === t));
+  $("t-mine").hidden = t.dataset.tab !== "mine"; $("t-op").hidden = t.dataset.tab !== "op";
+  if (t.dataset.tab === "op") loadPending();
+});
+
+// ---------- Organisations ----------
+COUNTRIES.forEach(([c, n, cur]) => $("o-country").append(el("option", { value: c, textContent: n + " (" + cur + ")" })));
+$("o-country").append(el("option", { value: "OTHER", textContent: "Autre pays…" }));
+$("o-country").onchange = () => { $("other-country").hidden = $("o-country").value !== "OTHER"; };
+
+async function loadOrgs() {
+  const { data, error } = await sb.rpc("my_organizations");
+  const box = $("orgs");
+  if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
+  if (!data.length) return box.replaceChildren(el("p", { className: "muted", textContent: "Aucune organisation pour l'instant. Inscrivez la vôtre ci-dessous, ou rejoignez une équipe avec un code d'invitation." }));
+  box.replaceChildren(...data.map(o => {
+    const [label, cls] = STATUS[o.status] || [o.status, ""];
+    const b = el("button", { className: "org", type: "button" },
+      el("span", { className: "n", textContent: o.name }),
+      el("span", { className: "small muted", textContent: (KINDS[o.kind] || o.kind) + " · " + o.country }),
+      el("span", { className: "badge " + cls, textContent: label }));
+    b.onclick = () => openOrg(o);
+    return b;
+  }));
+}
+
+$("f-org").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  say("org-msg", "");
+  let cc = $("o-country").value, cur;
+  if (cc === "OTHER") { cc = $("o-cc").value.trim().toUpperCase(); cur = $("o-cur").value.trim().toUpperCase(); }
+  else cur = COUNTRIES.find(c => c[0] === cc)[2];
+  if (!/^[A-Z]{2}$/.test(cc) || !/^[A-Z]{3}$/.test(cur)) return say("org-msg", "Indiquez un code pays de 2 lettres et une monnaie de 3 lettres.");
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  const { error } = await sb.rpc("create_organization", { p_name: $("o-name").value.trim(), p_kind: $("o-kind").value, p_country: cc, p_currency: cur, p_locale: "fr", p_timezone: tz });
+  if (error) return say("org-msg", errText(error));
+  ev.target.reset(); $("other-country").hidden = true;
+  say("org-msg", "Organisation créée. Ouvrez-la pour activer l'accès et inviter votre équipe.", "ok");
+  loadOrgs();
+}); });
+
+$("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const { error } = await sb.rpc("accept_invitation", { p_code: $("j-code").value });
+  if (error) return say("join-msg", errText(error));
+  $("j-code").value = ""; say("join-msg", "Bienvenue dans l'équipe !", "ok"); loadOrgs();
+}); });
+
+// ---------- Détail d'une organisation ----------
+$("back").onclick = () => { current = null; loadOrgs(); show("v-home"); };
+
+async function openOrg(o) {
+  current = o; const owner = o.roles.includes("owner");
+  $("org-name").textContent = o.name;
+  $("org-meta").textContent = (KINDS[o.kind] || o.kind) + " · " + o.country + " · " + o.currency + " · votre rôle : " + o.roles.map(r => ROLES[r] || r).join(", ");
+  const [label, cls] = STATUS[o.status] || [o.status, ""];
+  $("org-status").textContent = label; $("org-status").className = "badge " + cls;
+  $("pay-card").hidden = !(owner && o.status === "pending_payment");
+  $("invite-card").hidden = !owner;
+  ["act-msg","mem-msg","inv-out"].forEach(b => say(b, ""));
+  show("v-org");
+  if (!$("pay-card").hidden) loadPayLink();
+  loadMembers(); if (owner) loadInvites();
+  loadPublic();
+}
+
+async function loadPayLink() {
+  const { data } = await sb.from("payment_links").select("offer_label, checkout_url, amount_minor, currency, access_days")
+    .is("org_id", null).eq("state", "validated").eq("purpose", "saas_access").limit(1);
+  const box = $("pay-link");
+  if (!data || !data.length) return box.replaceChildren(el("div", { className: "msg info", textContent: "Le lien de paiement n'est pas encore publié par l'équipe QR AI. Revenez bientôt." }));
+  const l = data[0];
+  const price = l.amount_minor != null && l.currency ? " — " + new Intl.NumberFormat("fr-FR", { style: "currency", currency: l.currency, maximumFractionDigits: 0 }).format(l.amount_minor / (l.currency === "XOF" || l.currency === "XAF" ? 1 : 100)) : "";
+  const a = el("a", { className: "btn", href: l.checkout_url, target: "_blank", rel: "noopener noreferrer", textContent: "Payer : " + l.offer_label + price });
+  box.replaceChildren(a);
+}
+
+$("f-act").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const { error } = await sb.rpc("request_activation", { p_org: current.org_id, p_sale_reference: $("a-ref").value });
+  if (error) return say("act-msg", errText(error));
+  $("a-ref").value = "";
+  say("act-msg", "Demande envoyée. Votre accès sera activé dès que le paiement aura été vérifié.", "ok");
+}); });
+
+async function loadMembers() {
+  const { data, error } = await sb.rpc("list_members", { p_org: current.org_id });
+  const ul = $("members");
+  if (error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(error) }));
+  const owner = current.roles.includes("owner");
+  ul.replaceChildren(...data.filter(m => m.active).map(m => {
+    const li = el("li", {}, el("span", { className: "grow", textContent: (m.display_name ? m.display_name + " · " : "") + m.email + (m.is_me ? " (vous)" : "") }));
+    m.roles.forEach(r => li.append(el("span", { className: "badge b-role", textContent: ROLES[r] || r })));
+    if (owner && !m.is_me) {
+      const rm = el("button", { className: "btn danger small", type: "button", textContent: "Retirer" });
+      rm.onclick = async () => {
+        if (rm.dataset.armed !== "1") { rm.dataset.armed = "1"; rm.textContent = "Confirmer le retrait"; return; }
+        const { error } = await sb.rpc("set_member", { p_org: current.org_id, p_user: m.user_id, p_roles: null, p_active: false });
+        if (error) return say("mem-msg", errText(error));
+        say("mem-msg", m.email + " a été retiré de l'équipe.", "ok"); loadMembers();
+      };
+      li.append(rm);
+    }
+    return li;
+  }));
+}
+
+$("f-inv").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const roles = [...ev.target.querySelectorAll("input[type=checkbox]:checked")].map(c => c.value);
+  if (!roles.length) return say("inv-out", "Choisissez au moins un rôle.");
+  const email = $("i-email").value.trim();
+  const { data: code, error } = await sb.rpc("invite_member", { p_org: current.org_id, p_email: email, p_roles: roles });
+  if (error) return say("inv-out", errText(error));
+  const copy = el("button", { className: "btn ghost small", type: "button", textContent: "Copier le message" });
+  const text = "Bonjour, vous êtes invité(e) à rejoindre « " + current.name + " » sur QR AI. Connectez-vous avec l'adresse " + email + ", puis saisissez ce code d'invitation : " + code + " (valable 7 jours).";
+  copy.onclick = async () => { try { await navigator.clipboard.writeText(text); copy.textContent = "Copié ✓"; } catch { copy.textContent = "Sélectionnez le code ci-dessus"; } };
+  $("inv-out").replaceChildren(el("div", { className: "msg ok" },
+    el("div", { textContent: "Transmettez ce code à " + email + " (SMS, WhatsApp…). Il ne sera plus affiché ensuite." }),
+    el("div", { className: "bigcode", textContent: code }), copy));
+  ev.target.reset(); ev.target.querySelector("input[value=editor]").checked = true;
+  loadInvites();
+}); });
+
+async function loadInvites() {
+  const { data, error } = await sb.from("invitations").select("id, email, roles, expires_at")
+    .eq("org_id", current.org_id).is("accepted_at", null).is("revoked_at", null).gt("expires_at", new Date().toISOString()).order("created_at");
+  const ul = $("invites");
+  if (error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(error) }));
+  if (!data.length) return ul.replaceChildren(el("li", { className: "muted small", textContent: "Aucune invitation en attente." }));
+  ul.replaceChildren(...data.map(i => {
+    const li = el("li", {}, el("span", { className: "grow", textContent: i.email + " · expire le " + new Date(i.expires_at).toLocaleDateString("fr-FR") }));
+    i.roles.forEach(r => li.append(el("span", { className: "badge b-role", textContent: ROLES[r] || r })));
+    const x = el("button", { className: "btn ghost small", type: "button", textContent: "Annuler" });
+    x.onclick = async () => { const { error } = await sb.rpc("revoke_invitation", { p_invitation: i.id }); if (error) return say("inv-out", errText(error)); loadInvites(); };
+    li.append(x); return li;
+  }));
+}
+
+
+// ---------- Page publique, fiches et codes QR ----------
+let ctx = null;
+const canEdit = () => current && (current.roles.includes("owner") || current.roles.includes("editor"));
+const canValidate = () => current && current.roles.includes("validator");
+const VSTATUS = { DRAFT: "Brouillon", IN_REVIEW: "À valider", APPROVED: "Approuvée", PUBLISHED: "Publiée", WITHDRAWN: "Retirée", EXPIRED: "Expirée" };
+const TEMPLATES = {
+  health: [["Horaires","Quels sont vos horaires d'ouverture ?"],["Adresse et accès","Où êtes-vous situés et comment venir ?"],["Contacts et urgences","Comment vous joindre, y compris en urgence ?"],["Services","Quels services et spécialités proposez-vous ?"],["Rendez-vous","Comment prendre rendez-vous ?"],["Tarifs et paiement","Quels sont vos tarifs et moyens de paiement ?"],["Assurances","Acceptez-vous les assurances et mutuelles ?"],["Documents à apporter","Quels documents dois-je apporter ?"]],
+  default: [["Horaires","Quels sont vos horaires d'ouverture ?"],["Adresse et accès","Où êtes-vous situés ?"],["Contacts","Comment vous joindre ?"],["Services","Quels services proposez-vous ?"],["Tarifs et paiement","Quels sont vos tarifs et moyens de paiement ?"]]
+};
+const inDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+
+async function loadPublic() {
+  ["pub-msg","entry-msg","qr-msg"].forEach(b => say(b, ""));
+  $("f-pub").hidden = true; $("f-entry").hidden = true;
+  const { data, error } = await sb.from("contexts").select("id, public_name, welcome, status").eq("org_id", current.org_id).order("created_at").limit(1);
+  if (error) return say("pub-msg", errText(error));
+  ctx = data[0] || null;
+  renderPub();
+  $("entries-card").hidden = !ctx; $("qr-card").hidden = !ctx;
+  if (ctx) { renderTemplates(); loadEntries(); loadQrs(); }
+}
+
+function renderPub() {
+  const v = $("pub-view");
+  if (!ctx) {
+    v.replaceChildren(el("p", { textContent: canEdit() ? "Créez d'abord votre page publique." : "La page publique n'est pas encore créée." }));
+    if (canEdit()) { $("p-name").value = current.name; $("p-welcome").value = ""; $("f-pub").hidden = false; }
+    return;
+  }
+  const edit = el("button", { className: "btn ghost small", type: "button", textContent: "Modifier" });
+  edit.onclick = () => { $("p-name").value = ctx.public_name; $("p-welcome").value = (ctx.welcome && ctx.welcome.fr) || ""; $("f-pub").hidden = false; };
+  v.replaceChildren(el("div", {}, el("b", { textContent: ctx.public_name }), el("p", { className: "muted", textContent: (ctx.welcome && ctx.welcome.fr) || "(pas de message d'accueil)" })));
+  if (canEdit()) v.append(edit);
+}
+$("pub-cancel").onclick = () => { $("f-pub").hidden = !!ctx; };
+$("f-pub").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const row = { public_name: $("p-name").value.trim(), welcome: { fr: $("p-welcome").value.trim() } };
+  const q = ctx ? sb.from("contexts").update(row).eq("id", ctx.id)
+               : sb.from("contexts").insert({ ...row, org_id: current.org_id, name: "Accueil", status: "active" });
+  const { error } = await q;
+  if (error) return say("pub-msg", errText(error));
+  say("pub-msg", "Page publique enregistrée.", "ok"); loadPublic();
+}); });
+
+function renderTemplates() {
+  const box = $("entry-tpl"); box.replaceChildren();
+  if (!canEdit()) { $("entry-new").hidden = true; return; }
+  $("entry-new").hidden = false;
+  (TEMPLATES[current.kind] || TEMPLATES.default).forEach(([k, q]) => {
+    const b = el("button", { className: "chip", type: "button", textContent: "+ " + k });
+    b.onclick = () => openEntryForm(k, q, "");
+    box.append(b);
+  });
+}
+function openEntryForm(k, q, a) {
+  $("e-key").value = k; $("e-q").value = q; $("e-a").value = a; $("e-until").value = inDays(180);
+  $("e-until").min = inDays(0); $("e-until").max = inDays(730);
+  $("f-entry").hidden = false; $("e-a").focus();
+}
+$("entry-new").onclick = () => openEntryForm("", "", "");
+$("entry-cancel").onclick = () => { $("f-entry").hidden = true; };
+$("f-entry").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const { error } = await sb.rpc("save_entry", { p_context: ctx.id, p_key: $("e-key").value, p_question: $("e-q").value, p_answer: $("e-a").value, p_valid_until: $("e-until").value, p_locale: "fr" });
+  if (error) return say("entry-msg", errText(error));
+  $("f-entry").hidden = true;
+  say("entry-msg", "Fiche enregistrée en brouillon. Soumettez-la puis publiez-la pour qu'elle apparaisse.", "ok");
+  loadEntries();
+}); });
+
+async function setStatus(id, steps) {
+  for (const st of steps) {
+    const { error } = await sb.from("content_versions").update({ status: st }).eq("id", id);
+    if (error) { say("entry-msg", errText(error)); break; }
+  }
+  loadEntries();
+}
+
+async function loadEntries() {
+  const [items, vers] = await Promise.all([
+    sb.from("content_items").select("id, business_key").eq("context_id", ctx.id),
+    sb.from("content_versions").select("id, item_id, version, question, answer, status, valid_until, published_at").eq("locale", "fr").order("version", { ascending: false })
+  ]);
+  const ul = $("entries");
+  if (items.error || vers.error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(items.error || vers.error) }));
+  const ids = new Set(items.data.map(i => i.id));
+  const byItem = {};
+  vers.data.filter(v => ids.has(v.item_id)).forEach(v => (byItem[v.item_id] ||= []).push(v));
+  let published = 0;
+  const lis = items.data.map(it => {
+    const vs = byItem[it.id] || []; const latest = vs[0]; const live = vs.find(v => v.status === "PUBLISHED");
+    if (live) published++;
+    if (!latest) return null;
+    const li = el("li", { className: "entry" });
+    const head = el("div", { className: "head" }, el("span", { className: "q", textContent: latest.question }),
+      el("span", { className: "badge b-" + latest.status, textContent: VSTATUS[latest.status] + " · v" + latest.version }));
+    li.append(head, el("div", { className: "a", textContent: latest.answer }),
+      el("div", { className: "small muted", textContent: "Thème : " + it.business_key + " · valable jusqu'au " + new Date(latest.valid_until).toLocaleDateString("fr-FR") + (live && live !== latest ? " · la version " + live.version + " reste publiée en attendant" : "") }));
+    const acts = el("div", { className: "acts", style: "margin-top:8px" });
+    const btn = (label, fn, cls = "btn small") => { const b = el("button", { className: cls, type: "button", textContent: label }); b.onclick = async () => { b.disabled = true; await fn(); }; acts.append(b); };
+    if (latest.status === "DRAFT" && canEdit()) {
+      if (canValidate()) btn("Publier maintenant", () => setStatus(latest.id, ["IN_REVIEW", "APPROVED", "PUBLISHED"]));
+      btn("Soumettre pour validation", () => setStatus(latest.id, ["IN_REVIEW"]), canValidate() ? "btn ghost small" : "btn small");
+    }
+    if (latest.status === "IN_REVIEW" && canValidate()) {
+      btn("Approuver et publier", () => setStatus(latest.id, ["APPROVED", "PUBLISHED"]));
+      btn("Renvoyer en brouillon", () => setStatus(latest.id, ["DRAFT"]), "btn ghost small");
+    }
+    if (latest.status === "APPROVED" && canValidate()) btn("Publier", () => setStatus(latest.id, ["PUBLISHED"]));
+    if (latest.status === "PUBLISHED" && canValidate()) btn("Retirer", () => setStatus(latest.id, ["WITHDRAWN"]), "btn danger small");
+    if (canEdit() && latest.status !== "DRAFT" && latest.status !== "IN_REVIEW") btn("Modifier (nouvelle version)", async () => { openEntryForm(it.business_key, latest.question, latest.answer); }, "btn ghost small");
+    if (acts.childElementCount) li.append(acts);
+    return li;
+  }).filter(Boolean);
+  ul.replaceChildren(...(lis.length ? lis : [el("li", { className: "muted small", textContent: "Aucune fiche pour l'instant. Commencez par les thèmes proposés ci-dessus." })]));
+  setReady(published);
+}
+
+function setReady(published) {
+  const b = $("ready");
+  const ok = current.status === "active" && ctx && published > 0;
+  b.className = "badge " + (ok ? "b-active" : "b-pending");
+  b.textContent = ok ? "En ligne · " + published + " fiche" + (published > 1 ? "s" : "") + " publiée" + (published > 1 ? "s" : "")
+    : current.status !== "active" ? "Hors ligne : compte non activé" : "Hors ligne : aucune fiche publiée";
+}
+
+function drawQr(canvas, slug, label) {
+  const q = qrcode(0, "M"); q.addData(VISITOR_URL + slug); q.make();
+  const n = q.getModuleCount(), cell = Math.floor(880 / (n + 8)), size = cell * (n + 8), W = size, H = size + 170;
+  canvas.width = W; canvas.height = H;
+  const g = canvas.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.fillStyle = "#0d1c1f";
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + 4) * cell, (r + 4) * cell, cell, cell);
+  g.textAlign = "center";
+  g.font = "700 46px system-ui, sans-serif"; g.fillText(label.slice(0, 34), W / 2, size + 40);
+  g.font = "500 34px system-ui, sans-serif"; g.fillStyle = "#0b8a7c"; g.fillText("Scannez pour poser vos questions", W / 2, size + 95);
+  g.font = "600 30px ui-monospace, monospace"; g.fillStyle = "#56696c"; g.fillText(slug, W / 2, size + 145);
+}
+
+async function loadQrs() {
+  const box = $("qrs"); $("qr-new").hidden = !canEdit();
+  if (typeof qrcode !== "function") return box.replaceChildren(el("div", { className: "msg err", textContent: "Le module QR n'a pas pu se charger. Vérifiez votre connexion et rechargez la page." }));
+  const { data, error } = await sb.from("qr_entries").select("id, slug, status, created_at").eq("context_id", ctx.id).order("created_at");
+  if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
+  box.replaceChildren(...data.map(r => {
+    const cv = el("canvas"); drawQr(cv, r.slug, ctx.public_name);
+    const url = VISITOR_URL + r.slug;
+    const dl = el("a", { className: "btn small", textContent: "Télécharger l'image", download: "QR-" + r.slug + ".png", href: "#" });
+    dl.onclick = () => { dl.href = cv.toDataURL("image/png"); };
+    const info = el("div", {},
+      el("div", { className: "slug", textContent: r.slug }),
+      el("span", { className: "badge " + (r.status === "active" ? "b-active" : "b-suspended"), textContent: r.status === "active" ? "Actif" : "Désactivé" }),
+      el("div", { style: "margin:8px 0" }, el("a", { className: "link", href: url, target: "_blank", rel: "noopener", textContent: url })));
+    const acts = el("div", { className: "acts", style: "display:flex;gap:6px;flex-wrap:wrap" }, dl);
+    if (canEdit()) {
+      const t = el("button", { className: r.status === "active" ? "btn danger small" : "btn ghost small", type: "button", textContent: r.status === "active" ? "Désactiver" : "Réactiver" });
+      t.onclick = async () => {
+        if (r.status === "active" && t.dataset.armed !== "1") { t.dataset.armed = "1"; t.textContent = "Confirmer la désactivation"; return; }
+        const { error } = await sb.from("qr_entries").update({ status: r.status === "active" ? "disabled" : "active" }).eq("id", r.id);
+        if (error) return say("qr-msg", errText(error)); loadQrs();
+      };
+      acts.append(t);
+    }
+    info.append(acts);
+    return el("div", { className: "qr" }, cv, info);
+  }));
+  if (!data.length) box.replaceChildren(el("p", { className: "muted small", textContent: "Aucun code QR pour l'instant." }));
+  const u = await sb.from("ask_usage").select("questions").eq("org_id", current.org_id).eq("day", new Date().toISOString().slice(0, 10));
+  $("usage").textContent = "Questions posées au chat aujourd'hui : " + ((u.data && u.data[0] && u.data[0].questions) || 0) + " (plafond : 300 par jour).";
+}
+$("qr-new").onclick = async () => {
+  const { error } = await sb.rpc("create_qr", { p_context: ctx.id });
+  if (error) return say("qr-msg", errText(error));
+  say("qr-msg", "Code QR créé.", "ok"); loadQrs();
+};
+
+// ---------- Opérateur ----------
+async function loadPending() {
+  const { data, error } = await sb.rpc("pending_activations");
+  const ul = $("pending");
+  if (error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(error) }));
+  if (!data.length) return ul.replaceChildren(el("li", { className: "muted", textContent: "Aucune demande en attente." }));
+  ul.replaceChildren(...data.map(r => {
+    const li = el("li", {},
+      el("span", { className: "grow" },
+        el("b", { textContent: r.org_name }), " · " + r.country, el("br"),
+        el("span", { className: "small muted", textContent: "Réf. " + r.sale_reference + " · " + r.requested_by_email + " · " + new Date(r.created_at).toLocaleString("fr-FR") })));
+    const ok = el("button", { className: "btn small", type: "button", textContent: "Paiement vérifié : activer" });
+    const no = el("button", { className: "btn danger small", type: "button", textContent: "Rejeter" });
+    ok.onclick = async () => {
+      if (ok.dataset.armed !== "1") { ok.dataset.armed = "1"; ok.textContent = "Confirmer l'activation"; return; }
+      const { error } = await sb.rpc("confirm_activation", { p_request: r.request_id, p_confirm: true });
+      if (error) return say("op-msg", errText(error));
+      say("op-msg", r.org_name + " est activée.", "ok"); loadPending();
+    };
+    no.onclick = async () => {
+      if (no.dataset.armed !== "1") { no.dataset.armed = "1"; no.textContent = "Confirmer le rejet"; return; }
+      const { error } = await sb.rpc("confirm_activation", { p_request: r.request_id, p_confirm: false, p_reason: "Paiement introuvable" });
+      if (error) return say("op-msg", errText(error));
+      say("op-msg", "Demande rejetée.", "info"); loadPending();
+    };
+    li.append(ok, no); return li;
+  }));
+}
+
+</script>
+</body>
+</html>
