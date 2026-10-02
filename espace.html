@@ -68,7 +68,7 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .bigcode{font:800 26px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.12em;padding:14px;border:2px dashed var(--accent);border-radius:12px;text-align:center;margin:10px 0;user-select:all}
 .back{background:none;border:0;color:var(--accent);font-weight:700;padding:0;margin-bottom:10px}
 .tabs{display:flex;gap:6px;margin-bottom:14px}
-.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600}
+.tabs button{white-space:nowrap;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 14px;font-weight:600}
 .tabs button[aria-selected=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .steps{counter-reset:s;padding:0;list-style:none;margin:6px 0 0}
 .steps li{counter-increment:s;padding-left:34px;position:relative;margin:8px 0}
@@ -89,6 +89,14 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
 .qr .slug{font:800 18px ui-monospace,Menlo,monospace;letter-spacing:.06em}
 .qr a.link{color:var(--accent);word-break:break-all;font-size:13px}
 @media (max-width:520px){.qr{grid-template-columns:1fr}}
+
+.sg{display:block!important}
+.sg .meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sg .msgtxt{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 0;font-size:15px}
+.sg .ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
+.sg select{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+.sg textarea{flex:1 1 220px;min-height:38px}
+.b-RECU{background:var(--warn-soft);color:var(--warn)} .b-EN_REVUE,.b-EN_COURS{background:var(--info-soft);color:var(--info)} .b-TRAITE{background:var(--good-soft);color:var(--good)} .b-ARCHIVE{background:var(--surface2);color:var(--muted);border:1px solid var(--line)} .b-ABUS{background:var(--bad-soft);color:var(--bad)}
 </style>
 </head>
 <body>
@@ -247,6 +255,18 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       <div id="qr-msg"></div>
       <div id="qrs"></div>
       <p class="small muted" id="usage"></p>
+    </div>
+
+    <div class="card" id="sugg-card" hidden>
+      <div class="row" style="align-items:center"><h2 style="flex:1 1 auto;margin:0">Suggestions des visiteurs</h2><span id="sugg-new" class="badge" style="flex:0 0 auto"></span></div>
+      <p class="muted small">Messages laissés par les visiteurs depuis la page publique. Ils sont visibles uniquement par le propriétaire et les membres ayant le rôle « Suggestions ». Le message du visiteur ne peut pas être modifié.</p>
+      <div class="tabs" id="sugg-tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-f="open">À traiter</button>
+        <button role="tab" aria-selected="false" data-f="done">Traitées</button>
+        <button role="tab" aria-selected="false" data-f="archived">Archivées</button>
+      </div>
+      <ul class="list" id="suggs"></ul>
+      <div id="sugg-msg"></div>
     </div>
     <div class="card">
       <h2>Équipe</h2>
@@ -427,6 +447,7 @@ async function openOrg(o) {
   if (!$("pay-card").hidden) loadPayLink();
   loadMembers(); if (owner) loadInvites();
   loadPublic();
+  loadSuggestions();
 }
 
 async function loadPayLink() {
@@ -675,6 +696,63 @@ $("qr-new").onclick = async () => {
   if (error) return say("qr-msg", errText(error));
   say("qr-msg", "Code QR créé.", "ok"); loadQrs();
 };
+
+
+// ---------- Boîte à suggestions ----------
+const SSTATUS = { RECU: "Nouvelle", EN_REVUE: "En lecture", EN_COURS: "En cours", TRAITE: "Traitée", ARCHIVE: "Archivée", ABUS: "Abusive" };
+const SFILTER = { open: ["RECU", "EN_REVUE", "EN_COURS"], done: ["TRAITE"], archived: ["ARCHIVE", "ABUS"] };
+let suggFilter = "open";
+const canSugg = () => current && (current.roles.includes("owner") || current.roles.includes("suggestions"));
+$("sugg-tabs").addEventListener("click", (ev) => {
+  const t = ev.target.closest("button[data-f]"); if (!t) return;
+  suggFilter = t.dataset.f;
+  $("sugg-tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === t));
+  loadSuggestions();
+});
+async function loadSuggestions() {
+  $("sugg-card").hidden = !canSugg();
+  if (!canSugg()) return;
+  say("sugg-msg", "");
+  const [list, counts] = await Promise.all([
+    sb.from("suggestions").select("id, message, contact, locale, status, internal_note, created_at, retention_until")
+      .eq("org_id", current.org_id).in("status", SFILTER[suggFilter]).order("created_at", { ascending: false }).limit(100),
+    sb.from("suggestions").select("id", { count: "exact", head: true }).eq("org_id", current.org_id).eq("status", "RECU")
+  ]);
+  const nb = counts.count || 0;
+  $("sugg-new").textContent = nb ? nb + " nouvelle" + (nb > 1 ? "s" : "") : "Aucune nouvelle";
+  $("sugg-new").className = "badge " + (nb ? "b-pending" : "b-active");
+  const ul = $("suggs");
+  if (list.error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(list.error) }));
+  if (!list.data.length) return ul.replaceChildren(el("li", { className: "muted small", textContent: suggFilter === "open" ? "Aucune suggestion à traiter. Les messages des visiteurs apparaîtront ici." : "Rien dans cette rubrique." }));
+  ul.replaceChildren(...list.data.map(sg => {
+    const li = el("li", { className: "sg" });
+    const meta = el("div", { className: "meta" },
+      el("span", { className: "badge b-" + sg.status, textContent: SSTATUS[sg.status] || sg.status }),
+      el("span", { textContent: new Date(sg.created_at).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) }),
+      el("span", { textContent: "Réf. SG-" + sg.id.replace(/-/g, "").slice(0, 6).toUpperCase() }));
+    li.append(meta, el("div", { className: "msgtxt", textContent: sg.message }));
+    if (sg.contact) {
+      const c = el("div", { className: "small" }, el("b", { textContent: "Pour recontacter : " }), el("span", { textContent: sg.contact + " " }));
+      const digits = sg.contact.replace(/[^\d+]/g, "");
+      if (/^\+?\d{8,15}$/.test(digits)) c.append(el("a", { href: "tel:" + digits, textContent: "Appeler", className: "btn ghost small" }));
+      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sg.contact.trim())) c.append(el("a", { href: "mailto:" + sg.contact.trim(), textContent: "Écrire", className: "btn ghost small" }));
+      li.append(c);
+    }
+    const sel = el("select", { ariaLabel: "Statut" });
+    Object.entries(SSTATUS).forEach(([k, v]) => sel.append(el("option", { value: k, textContent: v, selected: k === sg.status })));
+    const note = el("textarea", { rows: 1, maxLength: 1000, placeholder: "Note interne (non visible du visiteur)", value: sg.internal_note || "" });
+    const save = el("button", { className: "btn small", type: "button", textContent: "Enregistrer" });
+    save.onclick = async () => {
+      save.disabled = true;
+      const { error } = await sb.from("suggestions").update({ status: sel.value, internal_note: note.value.trim() || null }).eq("id", sg.id);
+      save.disabled = false;
+      if (error) return say("sugg-msg", errText(error));
+      say("sugg-msg", "Suggestion mise à jour.", "ok"); loadSuggestions();
+    };
+    li.append(el("div", { className: "ctl" }, sel, note, save));
+    return li;
+  }));
+}
 
 // ---------- Opérateur ----------
 async function loadPending() {
