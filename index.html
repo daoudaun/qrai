@@ -142,6 +142,7 @@ function bubble(text, who, extra) {
 }
 
 async function load() {
+  if (!slug) { location.replace("presentation.html"); return; }
   if (!/^[A-Z]{3}-[A-Z0-9]{4,8}$/.test(slug)) return showUnavailable();
   let data;
   try { data = await rpc("public_context", { p_slug: slug, p_locale: null }); } catch { return showUnavailable("Connexion impossible. Vérifiez votre accès à Internet puis rechargez la page."); }

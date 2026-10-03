@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KnowMi · Accueil par QR et IA</title>
+<meta name="description" content="KnowMi : un code QR qui ouvre un assistant d'accueil répondant uniquement avec les informations validées par votre établissement.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="nav">
+    <a class="brand" href="presentation.html"><span class="logo" aria-hidden="true">QR</span>KnowMi</a>
+    <nav><a href="#fonctionnement">Fonctionnement</a><a href="#tarifs">Tarifs</a><a href="#contact">Contact</a><a href="espace.html">Espace partenaire</a></nav>
+  </header>
+
+  <section>
+    <h1>Vos visiteurs scannent.<br>Votre accueil répond, jour et nuit.</h1>
+    <p class="lead">KnowMi transforme un simple code QR en assistant d'accueil intelligent. Il répond aux questions pratiques de vos visiteurs, dans leur langue, en utilisant <b>uniquement</b> les informations que vous avez validées. Quand il ne sait pas, il le dit et oriente vers votre accueil.</p>
+    <p style="display:flex;gap:10px;flex-wrap:wrap;margin-top:22px"><a class="btn" href="#tarifs">Voir les tarifs</a><a class="btn ghost" href="espace.html">Créer mon espace</a></p>
+  </section>
+
+  <section id="fonctionnement">
+    <h2>Comment ça marche</h2>
+    <div class="grid">
+      <div class="card"><div class="step">1 · Vous renseignez</div><h3>Vos informations validées</h3><p>Horaires, tarifs, services, documents à apporter, contacts : vous rédigez des fiches et les validez avant publication.</p></div>
+      <div class="card"><div class="step">2 · Vous affichez</div><h3>Votre code QR</h3><p>Imprimez le code QR généré et affichez-le à l'accueil, en salle d'attente, sur vos supports.</p></div>
+      <div class="card"><div class="step">3 · Ils demandent</div><h3>Des réponses fiables</h3><p>Le visiteur scanne et pose sa question. L'assistant répond à partir de vos fiches, sans rien inventer, et cite ses sources.</p></div>
+      <div class="card"><div class="step">4 · Vous améliorez</div><h3>La boîte à suggestions</h3><p>Les visiteurs signalent une information manquante ; vous la traitez depuis votre espace partenaire.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pour qui ?</h2>
+    <div class="grid">
+      <div class="card"><h3>Établissements de santé</h3><p>Cliniques, cabinets, laboratoires : informations pratiques uniquement, jamais de conseil médical. Rappel des urgences intégré.</p></div>
+      <div class="card"><h3>Entreprises et commerces</h3><p>Horaires, produits, procédures, service client de premier niveau.</p></div>
+      <div class="card"><h3>Institutions et associations</h3><p>Démarches, pièces à fournir, orientation du public.</p></div>
+    </div>
+  </section>
+
+  <section id="tarifs">
+    <h2>Tarifs</h2>
+    <p class="note">Abonnement sans engagement, résiliable à tout moment. Paiement annuel : 2 mois offerts.</p>
+    <div class="toggle" role="group" aria-label="Zone et période">
+      <button type="button" data-zone="af" aria-pressed="true">Afrique · F CFA</button>
+      <button type="button" data-zone="int" aria-pressed="false">International · USD</button>
+      <button type="button" data-period="m" aria-pressed="true">Mensuel</button>
+      <button type="button" data-period="y" aria-pressed="false">Annuel</button>
+    </div>
+    <div class="grid" id="plans"></div>
+    <p class="note" style="margin-top:14px">Afrique : paiement par Mobile Money, carte bancaire ou Wave (KKiaPay). International : carte bancaire ou PayPal (Lemon Squeezy, revendeur officiel qui gère les taxes de votre pays). Les montants internationaux peuvent être majorés de la TVA ou taxe applicable dans votre pays.</p>
+  </section>
+
+  <section id="contact">
+    <h2>Contact</h2>
+    <div class="card"><p>Une question avant de vous abonner ? Écrivez-nous à <a href="mailto:knowmi.contact@gmail.com">knowmi.contact@gmail.com</a>. Réponse sous 48 heures ouvrées.</p></div>
+  </section>
+
+  <footer>
+    <div class="links"><a href="conditions.html">Conditions d'utilisation</a><a href="remboursement.html">Remboursement</a><a href="confidentialite.html">Confidentialité</a><a href="mentions-legales.html">Mentions légales</a></div>
+    © 2026 KnowMi · Daouda SIKIROU, entrepreneur individuel · Pobè, Bénin
+  </footer>
+</div>
+<script>
+const PLANS = [
+  { id: "essentiel", name: "Essentiel", af: 5000, int: 19, feats: ["1 espace public", "Jusqu'à 3 codes QR", "50 questions IA par jour", "Fiches et boîte à suggestions", "2 membres d'équipe"] },
+  { id: "pro", name: "Pro", af: 15000, int: 49, featured: true, feats: ["Jusqu'à 3 espaces publics", "Jusqu'à 10 codes QR", "200 questions IA par jour", "Fiches et boîte à suggestions", "5 membres d'équipe", "Assistance par e-mail prioritaire"] },
+  { id: "etablissement", name: "Établissement", af: 30000, int: 99, feats: ["Jusqu'à 10 espaces publics", "Jusqu'à 50 codes QR", "600 questions IA par jour", "Fiches et boîte à suggestions", "Membres d'équipe illimités", "Accompagnement à la mise en place"] },
+];
+let zone = "af", period = "m";
+const fmt = (p) => zone === "af"
+  ? (period === "m" ? p.af : p.af * 10).toLocaleString("fr-FR").replace(/ | /g, " ") + " F CFA"
+  : "$" + (period === "m" ? p.int : p.int * 10);
+function render() {
+  const box = document.getElementById("plans");
+  box.replaceChildren(...PLANS.map(p => {
+    const c = document.createElement("div");
+    c.className = "card plan" + (p.featured ? " featured" : "");
+    c.innerHTML = (p.featured ? '<span class="badge">Le plus choisi</span>' : "") +
+      `<h3>${p.name}</h3><div class="price">${fmt(p)} <small>/ ${period === "m" ? "mois" : "an"}</small></div>` +
+      "<ul>" + p.feats.map(f => `<li>${f}</li>`).join("") + "</ul>" +
+      `<a class="btn" href="espace.html?formule=${p.id}">Choisir ${p.name}</a>`;
+    return c;
+  }));
+}
+document.querySelectorAll(".toggle button").forEach(b => b.addEventListener("click", () => {
+  if (b.dataset.zone) { zone = b.dataset.zone; document.querySelectorAll("[data-zone]").forEach(x => x.setAttribute("aria-pressed", x === b)); }
+  if (b.dataset.period) { period = b.dataset.period; document.querySelectorAll("[data-period]").forEach(x => x.setAttribute("aria-pressed", x === b)); }
+  render();
+}));
+render();
+</script>
+</body>
+</html>
