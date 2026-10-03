@@ -182,9 +182,27 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     <div id="t-op" hidden>
       <div class="card">
         <h2>Paiements à vérifier</h2>
-        <p class="muted small">Avant de confirmer, retrouvez la référence de vente dans votre tableau de bord Chariow et vérifiez que le paiement est bien reçu.</p>
+        <p class="muted small">Demandes saisies par les clients d'un revendeur. Avant de confirmer, vérifiez la référence auprès du revendeur (et le reversement de votre part).</p>
         <ul class="list" id="pending"></ul>
         <div id="op-msg"></div>
+      </div>
+      <div class="card">
+        <h2>Enregistrer une vente revendeur</h2>
+        <p class="muted small">Active l'organisation pour la durée vendue. Une référence ne peut servir qu'une fois.</p>
+        <form id="f-resale">
+          <label for="r-org">Organisation</label><select id="r-org" required></select>
+          <div class="row">
+            <div><label for="r-plan">Formule</label><select id="r-plan"><option value="essentiel">Essentiel</option><option value="pro">Pro</option><option value="etablissement">Établissement</option></select></div>
+            <div><label for="r-period">Période</label><select id="r-period"><option value="month">Mois</option><option value="year">Année</option></select></div>
+          </div>
+          <div class="row">
+            <div><label for="r-ref">Référence revendeur</label><input id="r-ref" type="text" required minlength="3" maxlength="80" placeholder="Ex. NG-2026-001"></div>
+            <div><label for="r-amount">Montant encaissé</label><input id="r-amount" type="text" required inputmode="decimal" placeholder="Ex. 25000"></div>
+            <div><label for="r-cur">Devise</label><select id="r-cur"><option>NGN</option><option>XOF</option><option>USD</option><option>GHS</option></select></div>
+          </div>
+          <button class="btn" type="submit">Enregistrer et activer</button>
+        </form>
+        <div id="resale-msg"></div>
       </div>
     </div>
   </section>
@@ -199,19 +217,29 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       </div>
     </div>
     <div class="card" id="pay-card" hidden>
-      <h2>Activer l'accès</h2>
-      <ol class="steps">
-        <li>Payez l'accès QR AI via le lien de paiement sécurisé.</li>
-        <li>Notez la <b>référence de vente</b> indiquée sur votre reçu.</li>
-        <li>Saisissez-la ci-dessous. L'équipe QR AI vérifie et active votre compte.</li>
-      </ol>
-      <div id="pay-link"></div>
+      <h2>Abonnement</h2>
+      <div id="sub-state"></div>
+      <div class="row">
+        <div><label for="s-plan">Formule</label><select id="s-plan"></select></div>
+        <div><label for="s-period">Période</label>
+          <select id="s-period"><option value="month">Mensuelle</option><option value="year">Annuelle (2 mois offerts)</option></select></div>
+      </div>
+      <p class="small muted" id="s-price"></p>
+      <div class="row">
+        <button class="btn" type="button" id="pay-kkp">Payer en F CFA · Mobile Money, carte, Wave</button>
+        <button class="btn ghost" type="button" id="pay-ls">Payer en $ · carte, PayPal (international)</button>
+      </div>
+      <div id="pay-msg"></div>
+      <p class="small muted">Formules et conditions : <a href="presentation.html#tarifs" target="_blank" rel="noopener">tarifs</a> · <a href="remboursement.html" target="_blank" rel="noopener">remboursement</a>.</p>
+      <details style="margin-top:10px"><summary class="small">J'ai payé auprès d'un revendeur agréé</summary>
+      <p class="small muted">Saisissez la référence figurant sur le reçu du revendeur. L'équipe KnowMi vérifie et active votre accès.</p>
       <form id="f-act">
         <label for="a-ref">Référence de vente</label>
         <input id="a-ref" type="text" required minlength="3" maxlength="80" placeholder="Ex. référence figurant sur le reçu">
         <button class="btn" type="submit">Envoyer pour vérification</button>
       </form>
       <div id="act-msg"></div>
+      </details>
     </div>
 
     <div class="card" id="pub-card">
@@ -387,8 +415,22 @@ $("tabs").addEventListener("click", (ev) => {
   const t = ev.target.closest("button[data-tab]"); if (!t) return;
   $("tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === t));
   $("t-mine").hidden = t.dataset.tab !== "mine"; $("t-op").hidden = t.dataset.tab !== "op";
-  if (t.dataset.tab === "op") loadPending();
+  if (t.dataset.tab === "op") { loadPending(); loadResaleOrgs(); }
 });
+async function loadResaleOrgs() {
+  const { data, error } = await sb.from("organizations").select("id, name, country, status").order("name");
+  if (error) return say("resale-msg", errText(error));
+  $("r-org").replaceChildren(...data.map(o => el("option", { value: o.id, textContent: o.name + " (" + o.country + ") · " + ((STATUS[o.status] || [o.status])[0]) })));
+}
+$("f-resale").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const amount = Number($("r-amount").value.replace(/\s/g, "").replace(",", "."));
+  if (!(amount > 0)) return say("resale-msg", "Indiquez le montant encaissé par le revendeur.");
+  const { data, error } = await sb.rpc("record_reseller_sale", { p_org: $("r-org").value, p_plan: $("r-plan").value, p_period: $("r-period").value,
+    p_reference: $("r-ref").value, p_amount: amount, p_currency: $("r-cur").value });
+  if (error) return say("resale-msg", errText(error));
+  if (!data.ok) return say("resale-msg", data.reason === "ref_already_used" ? "Cette référence a déjà été utilisée." : "Vente refusée (" + data.reason + ").");
+  ev.target.reset(); say("resale-msg", "Vente enregistrée : organisation active jusqu'au " + fmtDay(data.paid_until) + ".", "ok"); loadResaleOrgs();
+}); });
 
 // ---------- Organisations ----------
 COUNTRIES.forEach(([c, n, cur]) => $("o-country").append(el("option", { value: c, textContent: n + " (" + cur + ")" })));
@@ -440,26 +482,110 @@ async function openOrg(o) {
   $("org-meta").textContent = (KINDS[o.kind] || o.kind) + " · " + o.country + " · " + o.currency + " · votre rôle : " + o.roles.map(r => ROLES[r] || r).join(", ");
   const [label, cls] = STATUS[o.status] || [o.status, ""];
   $("org-status").textContent = label; $("org-status").className = "badge " + cls;
-  $("pay-card").hidden = !(owner && o.status === "pending_payment");
+  $("pay-card").hidden = !owner;
   $("invite-card").hidden = !owner;
-  ["act-msg","mem-msg","inv-out"].forEach(b => say(b, ""));
+  ["act-msg","mem-msg","inv-out","pay-msg"].forEach(b => say(b, ""));
   show("v-org");
-  if (!$("pay-card").hidden) loadPayLink();
+  if (owner) loadSubscription();
   loadMembers(); if (owner) loadInvites();
   loadPublic();
   loadSuggestions();
 }
 
-async function loadPayLink() {
-  const { data } = await sb.from("payment_links").select("offer_label, checkout_url, amount_minor, currency, access_days")
-    .is("org_id", null).eq("state", "validated").eq("purpose", "saas_access").limit(1);
-  const box = $("pay-link");
-  if (!data || !data.length) return box.replaceChildren(el("div", { className: "msg info", textContent: "Le lien de paiement n'est pas encore publié par l'équipe QR AI. Revenez bientôt." }));
-  const l = data[0];
-  const price = l.amount_minor != null && l.currency ? " — " + new Intl.NumberFormat("fr-FR", { style: "currency", currency: l.currency, maximumFractionDigits: 0 }).format(l.amount_minor / (l.currency === "XOF" || l.currency === "XAF" ? 1 : 100)) : "";
-  const a = el("a", { className: "btn", href: l.checkout_url, target: "_blank", rel: "noopener noreferrer", textContent: "Payer : " + l.offer_label + price });
-  box.replaceChildren(a);
+// ---------- Abonnement et paiement ----------
+// Clé PUBLIQUE KKiaPay (pas un secret) ; mode test tant que KKIAPAY_SANDBOX vaut true.
+const KKIAPAY_PUBLIC_KEY = "";
+const KKIAPAY_SANDBOX = true;
+let PLANS = [], kkpOrder = null, kkpListening = false;
+const fmtXof = (n) => Number(n).toLocaleString("fr-FR").replace(/ | /g, " ") + " F CFA";
+const fmtDay = (d) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+async function loadSubscription() {
+  if (!PLANS.length) {
+    const { data } = await sb.from("plans").select("id, name, daily_questions, price_xof_month, price_usd_month, ls_checkout_month, ls_checkout_year").order("sort");
+    PLANS = data || [];
+    $("s-plan").replaceChildren(...PLANS.map(p => el("option", { value: p.id, textContent: p.name + " · " + p.daily_questions + " questions IA / jour" })));
+    const wanted = new URLSearchParams(location.search).get("formule");
+    if (wanted && PLANS.some(p => p.id === wanted)) $("s-plan").value = wanted;
+  }
+  const { data: org } = await sb.from("organizations").select("status, plan, paid_until").eq("id", current.org_id).maybeSingle();
+  const box = $("sub-state");
+  if (org && org.plan && org.paid_until) {
+    const p = PLANS.find(x => x.id === org.plan);
+    const late = new Date(org.paid_until) < new Date();
+    box.replaceChildren(el("div", { className: "msg " + (late ? "err" : "ok"),
+      textContent: "Formule " + (p ? p.name : org.plan) + (late ? " — échue depuis le " : " — payée jusqu'au ") + fmtDay(org.paid_until) + (late ? ". Renouvelez pour garder votre page active." : ".") }));
+    $("s-plan").value = org.plan;
+  } else if (org && org.status === "active") {
+    box.replaceChildren(el("div", { className: "msg ok", textContent: "Accès actif (activation manuelle, sans échéance)." }));
+  } else {
+    box.replaceChildren(el("div", { className: "msg info", textContent: "Choisissez une formule et payez : votre accès est activé automatiquement dès la confirmation du paiement." }));
+  }
+  showPrice();
 }
+function showPrice() {
+  const p = PLANS.find(x => x.id === $("s-plan").value); if (!p) return;
+  const y = $("s-period").value === "year", k = y ? 10 : 1;
+  $("s-price").textContent = "Afrique : " + fmtXof(p.price_xof_month * k) + " · International : $" + Number(p.price_usd_month) * k + (y ? " par an" : " par mois");
+  $("pay-ls").disabled = !(y ? p.ls_checkout_year : p.ls_checkout_month);
+  $("pay-ls").title = $("pay-ls").disabled ? "Paiement international bientôt disponible" : "";
+}
+$("s-plan").onchange = showPrice; $("s-period").onchange = showPrice;
+
+function loadScript(src) {
+  return new Promise((ok, ko) => {
+    if (document.querySelector('script[src="' + src + '"]')) return ok();
+    const s = el("script", { src }); s.onload = ok; s.onerror = () => ko(new Error("Failed to fetch")); document.head.append(s);
+  });
+}
+async function newOrder(provider) {
+  const { data, error } = await sb.rpc("create_order", { p_org: current.org_id, p_plan: $("s-plan").value, p_period: $("s-period").value, p_provider: provider });
+  if (error) { say("pay-msg", errText(error)); return null; }
+  return data;
+}
+async function confirmKkiapay(orderId, transactionId) {
+  say("pay-msg", "Paiement reçu, vérification en cours…", "info");
+  for (let i = 0; i < 4; i++) {
+    const r = await fetch(SUPABASE_URL + "/functions/v1/pay-kkiapay", { method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY }, body: JSON.stringify({ order_id: orderId, transaction_id: transactionId }) });
+    const j = await r.json().catch(() => ({}));
+    if (j.status === "paid") { say("pay-msg", "Paiement confirmé ✓ Votre accès est actif jusqu'au " + fmtDay(j.paid_until) + ".", "ok"); return refreshOrg(); }
+    if (j.status !== "not_paid" && j.status !== "verification_failed") break;
+    await new Promise(res => setTimeout(res, 5000));
+  }
+  say("pay-msg", "Le paiement n'a pas encore pu être confirmé. S'il a bien été débité, il sera pris en compte automatiquement dans quelques minutes ; sinon écrivez à knowmi.contact@gmail.com avec la référence " + transactionId + ".", "info");
+}
+async function refreshOrg() {
+  const { data } = await sb.rpc("my_organizations");
+  const o = (data || []).find(x => x.org_id === current.org_id);
+  if (o) { current = o; const [label, cls] = STATUS[o.status] || [o.status, ""]; $("org-status").textContent = label; $("org-status").className = "badge " + cls; }
+  loadSubscription();
+}
+$("pay-kkp").onclick = async () => {
+  say("pay-msg", "");
+  if (!KKIAPAY_PUBLIC_KEY) return say("pay-msg", "Le paiement Mobile Money sera ouvert très prochainement.", "info");
+  const btn = $("pay-kkp"); btn.disabled = true;
+  try {
+    await loadScript("https://cdn.kkiapay.me/k.js");
+    const order = await newOrder("kkiapay"); if (!order) return;
+    kkpOrder = order.order_id;
+    if (!kkpListening) {
+      kkpListening = true;
+      addSuccessListener((res) => { if (!kkpOrder) return; const id = kkpOrder; kkpOrder = null; confirmKkiapay(id, res.transactionId); });
+    }
+    openKkiapayWidget({ amount: String(order.amount), key: KKIAPAY_PUBLIC_KEY, sandbox: KKIAPAY_SANDBOX, position: "center",
+      theme: "#0b8a7c", data: JSON.stringify({ order_id: order.order_id }), email: me.email });
+  } catch (e) { say("pay-msg", errText(e)); } finally { btn.disabled = false; }
+};
+$("pay-ls").onclick = async () => {
+  say("pay-msg", "");
+  const order = await newOrder("lemonsqueezy"); if (!order || !order.checkout_url) return;
+  const u = new URL(order.checkout_url);
+  u.searchParams.set("checkout[custom][order_id]", order.order_id);
+  u.searchParams.set("checkout[email]", me.email);
+  window.open(u.toString(), "_blank", "noopener");
+  say("pay-msg", "La page de paiement sécurisée s'est ouverte dans un nouvel onglet. Une fois le paiement fait, revenez ici : votre accès s'active automatiquement (rechargez la page après une minute).", "info");
+};
 
 $("f-act").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
   const { error } = await sb.rpc("request_activation", { p_org: current.org_id, p_sale_reference: $("a-ref").value });
