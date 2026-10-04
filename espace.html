@@ -496,7 +496,7 @@ async function openOrg(o) {
 
 // ---------- Abonnement et paiement ----------
 // Clé PUBLIQUE KKiaPay (pas un secret) ; mode test tant que KKIAPAY_SANDBOX vaut true.
-const KKIAPAY_PUBLIC_KEY = "";
+const KKIAPAY_PUBLIC_KEY = "e8b2e760bf0011f1bbe5711636fbb1b5";
 const KKIAPAY_SANDBOX = true;
 let PLANS = [], kkpOrder = null, kkpListening = false;
 const fmtXof = (n) => Number(n).toLocaleString("fr-FR").replace(/ | /g, " ") + " F CFA";
