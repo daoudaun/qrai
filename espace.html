@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Espace QR AI</title>
+<title>Espace KnowMi</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -27,7 +29,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
 button,input,select{font:inherit;color:inherit}
 .wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
 header.top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
-.logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:800 15px var(--f-display)}
+.logo{width:38px;height:38px;border-radius:11px;display:block;flex:0 0 auto}
 .brand{font:800 20px var(--f-display);letter-spacing:-.01em}
 .brand small{display:block;font:500 12px var(--f-body);color:var(--muted)}
 .top .sp{flex:1}
@@ -102,8 +104,8 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
 <body>
 <div class="wrap">
   <header class="top">
-    <div class="logo" aria-hidden="true">QR</div>
-    <div class="brand">QR AI<small>Espace partenaire</small></div>
+    <img class="logo" src="logo-96.png" alt="" width="38" height="38">
+    <div class="brand">KnowMi<small>Espace partenaire</small></div>
     <div class="sp"></div>
     <span id="who" class="small muted"></span>
     <button id="logout" class="btn ghost small" hidden>Se déconnecter</button>
@@ -321,7 +323,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     </div>
   </section>
 
-  <p class="small muted" style="text-align:center;margin-top:30px">QR AI · données hébergées dans l'Union européenne (Paris)</p>
+  <p class="small muted" style="text-align:center;margin-top:30px">KnowMi · données hébergées dans l'Union européenne (Paris)</p>
 </div>
 
 <script>
@@ -386,7 +388,7 @@ $("f-code").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
     let u; try { u = new URL(raw); } catch { return say("login-msg", "Ce lien n'est pas valide. Copiez à nouveau l'adresse du lien depuis l'e-mail."); }
     const hash = u.searchParams.get("token") || u.searchParams.get("token_hash");
     const type = u.searchParams.get("type") || "magiclink";
-    if (!hash || !/^[A-Za-z0-9_-]{20,}$/.test(hash) || !/^(magiclink|signup|invite|email)$/.test(type)) return say("login-msg", "Ce lien ne vient pas d'un e-mail de connexion QR AI.");
+    if (!hash || !/^[A-Za-z0-9_-]{20,}$/.test(hash) || !/^(magiclink|signup|invite|email)$/.test(type)) return say("login-msg", "Ce lien ne vient pas d'un e-mail de connexion KnowMi.");
     res = await sb.auth.verifyOtp({ token_hash: hash, type });
   } else {
     res = await sb.auth.verifyOtp({ email: pendingEmail, token: raw.replace(/\s/g, ""), type: "email" });
@@ -623,7 +625,7 @@ $("f-inv").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
   const { data: code, error } = await sb.rpc("invite_member", { p_org: current.org_id, p_email: email, p_roles: roles });
   if (error) return say("inv-out", errText(error));
   const copy = el("button", { className: "btn ghost small", type: "button", textContent: "Copier le message" });
-  const text = "Bonjour, vous êtes invité(e) à rejoindre « " + current.name + " » sur QR AI. Connectez-vous avec l'adresse " + email + ", puis saisissez ce code d'invitation : " + code + " (valable 7 jours).";
+  const text = "Bonjour, vous êtes invité(e) à rejoindre « " + current.name + " » sur KnowMi. Connectez-vous avec l'adresse " + email + ", puis saisissez ce code d'invitation : " + code + " (valable 7 jours).";
   copy.onclick = async () => { try { await navigator.clipboard.writeText(text); copy.textContent = "Copié ✓"; } catch { copy.textContent = "Sélectionnez le code ci-dessus"; } };
   $("inv-out").replaceChildren(el("div", { className: "msg ok" },
     el("div", { textContent: "Transmettez ce code à " + email + " (SMS, WhatsApp…). Il ne sera plus affiché ensuite." }),
