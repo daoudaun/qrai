@@ -125,7 +125,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         <p class="msg info" id="sent-to"></p>
         <label for="code">Collez ici le lien de l'e-mail ou l'adresse de la page ouverte</label>
         <input id="code" type="text" autocomplete="one-time-code" maxlength="4000" required placeholder="Collez ici">
-        <div class="small muted" style="margin-top:8px"><b>Deux façons de faire :</b><br>
+        <div class="small muted" id="code-help" style="margin-top:8px"><b>Deux façons de faire :</b><br>
           • <b>Sans cliquer</b> : dans l'e-mail, clic droit sur le bouton « Sign in » → « Copier l'adresse du lien », puis collez ici.<br>
           • <b>Si vous avez déjà cliqué</b> : une page « Ce site est inaccessible » (localhost) s'est ouverte. C'est normal. Cliquez dans la barre d'adresse de cette page, copiez toute l'adresse (Ctrl+A puis Ctrl+C), puis collez-la ici.</div>
         <div class="row">
@@ -331,6 +331,10 @@ const SUPABASE_URL = "https://zvynitsffqtaiebtayda.supabase.co";
 const SUPABASE_KEY = "sb_publishable_JdO1h7Z0cB4ZMWZhat3mIQ_H6_6bAkT";
 // Adresse publique de la page visiteur (GitHub Pages)
 const VISITOR_URL = "https://daoudaun.github.io/qrai/?c=";
+// Application mobile KnowMi : la page tourne dans l'appli Android/iOS (pont natif limité à « copier » et « partager une image »)
+const IN_APP = typeof window.KNOWMI_APP === "string" && !!window.ReactNativeWebView;
+const toApp = (msg) => { try { window.ReactNativeWebView.postMessage(JSON.stringify(msg)); return true; } catch { return false; } };
+async function copyText(text) { if (IN_APP && toApp({ type: "copy", text })) return; await navigator.clipboard.writeText(text); }
 if (!window.supabase) { document.body.textContent = "Impossible de charger le module de connexion. Vérifiez votre accès à Internet puis rechargez la page."; throw new Error("supabase-js absent"); }
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -372,7 +376,8 @@ $("f-email").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.t
   const redirect = /^https:/.test(location.protocol) ? location.origin + location.pathname : undefined;
   const { error } = await sb.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true, emailRedirectTo: redirect } });
   if (error) return say("login-msg", errText(error));
-  $("sent-to").textContent = (/^https:/.test(location.protocol) ? "Ouvrez l'e-mail et cliquez simplement sur « Sign in » : vous reviendrez ici, connecté. " : "") + "E-mail envoyé à " + pendingEmail + " (expéditeur Supabase, objet « Your sign-in link »). Regardez aussi dans les courriers indésirables.";
+  $("sent-to").textContent = (IN_APP ? "Saisissez ci-dessous le code reçu par e-mail. " : /^https:/.test(location.protocol) ? "Ouvrez l'e-mail et cliquez simplement sur « Sign in » : vous reviendrez ici, connecté. " : "") + "E-mail envoyé à " + pendingEmail + " (expéditeur Supabase, objet « Your sign-in link »). Regardez aussi dans les courriers indésirables.";
+  if (IN_APP) { $("code").placeholder = "Code reçu par e-mail"; $("code").inputMode = "numeric"; $("code-help").hidden = true; }
   $("f-email").hidden = true; $("f-code").hidden = false; $("code").focus();
 }); });
 $("change-email").onclick = () => { $("f-code").hidden = true; $("f-email").hidden = false; say("login-msg", ""); };
@@ -626,7 +631,7 @@ $("f-inv").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
   if (error) return say("inv-out", errText(error));
   const copy = el("button", { className: "btn ghost small", type: "button", textContent: "Copier le message" });
   const text = "Bonjour, vous êtes invité(e) à rejoindre « " + current.name + " » sur KnowMi. Connectez-vous avec l'adresse " + email + ", puis saisissez ce code d'invitation : " + code + " (valable 7 jours).";
-  copy.onclick = async () => { try { await navigator.clipboard.writeText(text); copy.textContent = "Copié ✓"; } catch { copy.textContent = "Sélectionnez le code ci-dessus"; } };
+  copy.onclick = async () => { try { await copyText(text); copy.textContent = "Copié ✓"; } catch { copy.textContent = "Sélectionnez le code ci-dessus"; } };
   $("inv-out").replaceChildren(el("div", { className: "msg ok" },
     el("div", { textContent: "Transmettez ce code à " + email + " (SMS, WhatsApp…). Il ne sera plus affiché ensuite." }),
     el("div", { className: "bigcode", textContent: code }), copy));
@@ -797,7 +802,7 @@ async function loadQrs() {
     const cv = el("canvas"); drawQr(cv, r.slug, ctx.public_name);
     const url = VISITOR_URL + r.slug;
     const dl = el("a", { className: "btn small", textContent: "Télécharger l'image", download: "QR-" + r.slug + ".png", href: "#" });
-    dl.onclick = () => { dl.href = cv.toDataURL("image/png"); };
+    dl.onclick = (ev) => { const data = cv.toDataURL("image/png"); if (IN_APP) { ev.preventDefault(); toApp({ type: "saveImage", name: "QR-" + r.slug + ".png", dataUrl: data }); } else dl.href = data; };
     const info = el("div", {},
       el("div", { className: "slug", textContent: r.slug }),
       el("span", { className: "badge " + (r.status === "active" ? "b-active" : "b-suspended"), textContent: r.status === "active" ? "Actif" : "Désactivé" }),
