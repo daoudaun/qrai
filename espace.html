@@ -369,6 +369,7 @@ async function busy(form, fn) {
   const b = form.querySelector("button[type=submit]"); b.disabled = true;
   try { await fn(); } finally { b.disabled = false; }
 }
+const PAGE = location.pathname + location.search;
 function show(view) { ["v-login","v-home","v-org"].forEach(v => $(v).hidden = v !== view); window.scrollTo(0, 0); }
 
 let me = null, current = null, isOperator = false;
@@ -412,7 +413,7 @@ $("logout").onclick = async () => { await sb.auth.signOut(); };
 sb.auth.onAuthStateChange((_evt, session) => {
   const user = session && session.user;
   if (user && (!me || me.id !== user.id)) { me = user; setTimeout(enter, 0); }
-  if (!user) { me = null; current = null; $("who").textContent = ""; $("logout").hidden = true; $("f-code").hidden = true; $("f-email").hidden = false; show("v-login"); }
+  if (!user) { me = null; current = null; $("who").textContent = ""; $("logout").hidden = true; $("f-code").hidden = true; $("f-email").hidden = false; show("v-login"); if (history.state && history.state.v === "org") history.replaceState(null, "", PAGE); }
 });
 
 async function enter() {
@@ -486,7 +487,11 @@ $("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
 }); });
 
 // ---------- Détail d'une organisation ----------
-$("back").onclick = () => { current = null; loadOrgs(); show("v-home"); };
+// Le retour (bouton « Retour », touche retour du téléphone ou du navigateur) ramène à la liste des organisations
+function goHome() { current = null; loadOrgs(); show("v-home"); }
+if (location.hash === "#org") history.replaceState(null, "", PAGE);
+$("back").onclick = () => { if (history.state && history.state.v === "org") history.back(); else goHome(); };
+window.addEventListener("popstate", () => { if (!$("v-org").hidden) goHome(); });
 
 async function openOrg(o) {
   current = o; const owner = o.roles.includes("owner");
@@ -498,6 +503,7 @@ async function openOrg(o) {
   $("invite-card").hidden = !owner;
   ["act-msg","mem-msg","inv-out","pay-msg"].forEach(b => say(b, ""));
   show("v-org");
+  if (!history.state || history.state.v !== "org") history.pushState({ v: "org" }, "", PAGE + "#org");
   if (owner) loadSubscription();
   loadMembers(); if (owner) loadInvites();
   loadPublic();
