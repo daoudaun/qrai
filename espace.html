@@ -133,6 +133,15 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
           <button class="btn ghost" type="button" id="change-email">Changer d'adresse</button>
         </div>
       </form>
+      <details id="pass-box" style="margin-top:14px"><summary class="small">Connexion avec mot de passe (compte de démonstration)</summary>
+        <form id="f-pass" style="margin-top:8px">
+          <label for="p-email">Adresse e-mail</label>
+          <input id="p-email" type="email" required autocomplete="username" maxlength="254">
+          <label for="p-pass">Mot de passe</label>
+          <input id="p-pass" type="password" required autocomplete="current-password" minlength="8" maxlength="128">
+          <button class="btn" type="submit">Se connecter</button>
+        </form>
+      </details>
       <div id="login-msg"></div>
     </div>
   </section>
@@ -221,6 +230,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     <div class="card" id="pay-card" hidden>
       <h2>Abonnement</h2>
       <div id="sub-state"></div>
+      <div id="pay-zone">
       <div class="row">
         <div><label for="s-plan">Formule</label><select id="s-plan"></select></div>
         <div><label for="s-period">Période</label>
@@ -242,6 +252,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       </form>
       <div id="act-msg"></div>
       </details>
+      </div>
     </div>
 
     <div class="card" id="pub-card">
@@ -408,6 +419,12 @@ $("f-code").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
   if (error) return say("login-msg", errText(error));
   $("code").value = "";
 }); });
+$("f-pass").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  say("login-msg", "");
+  const { error } = await sb.auth.signInWithPassword({ email: $("p-email").value.trim().toLowerCase(), password: $("p-pass").value });
+  $("p-pass").value = "";
+  if (error) return say("login-msg", /invalid/i.test(error.message) ? "Adresse ou mot de passe incorrect." : errText(error));
+}); });
 $("logout").onclick = async () => { await sb.auth.signOut(); };
 
 sb.auth.onAuthStateChange((_evt, session) => {
@@ -500,6 +517,7 @@ async function openOrg(o) {
   const [label, cls] = STATUS[o.status] || [o.status, ""];
   $("org-status").textContent = label; $("org-status").className = "badge " + cls;
   $("pay-card").hidden = !owner;
+  $("pay-zone").hidden = IN_APP;
   $("invite-card").hidden = !owner;
   ["act-msg","mem-msg","inv-out","pay-msg"].forEach(b => say(b, ""));
   show("v-org");
@@ -532,12 +550,12 @@ async function loadSubscription() {
     const p = PLANS.find(x => x.id === org.plan);
     const late = new Date(org.paid_until) < new Date();
     box.replaceChildren(el("div", { className: "msg " + (late ? "err" : "ok"),
-      textContent: "Formule " + (p ? p.name : org.plan) + (late ? " — échue depuis le " : " — payée jusqu'au ") + fmtDay(org.paid_until) + (late ? ". Renouvelez pour garder votre page active." : ".") }));
+      textContent: "Formule " + (p ? p.name : org.plan) + (late ? " — échue depuis le " : " — payée jusqu'au ") + fmtDay(org.paid_until) + (late ? (IN_APP ? "." : ". Renouvelez pour garder votre page active.") : ".") }));
     $("s-plan").value = org.plan;
   } else if (org && org.status === "active") {
     box.replaceChildren(el("div", { className: "msg ok", textContent: "Accès actif (activation manuelle, sans échéance)." }));
   } else {
-    box.replaceChildren(el("div", { className: "msg info", textContent: "Choisissez une formule et payez : votre accès est activé automatiquement dès la confirmation du paiement." }));
+    box.replaceChildren(el("div", { className: "msg info", textContent: IN_APP ? "Aucun abonnement actif pour cette organisation." : "Choisissez une formule et payez : votre accès est activé automatiquement dès la confirmation du paiement." }));
   }
   showPrice();
 }
