@@ -332,8 +332,10 @@ const SUPABASE_KEY = "sb_publishable_JdO1h7Z0cB4ZMWZhat3mIQ_H6_6bAkT";
 // Adresse publique de la page visiteur (GitHub Pages)
 const VISITOR_URL = "https://daoudaun.github.io/qrai/?c=";
 // Application mobile KnowMi : la page tourne dans l'appli Android/iOS (pont natif limité à « copier » et « partager une image »)
-const IN_APP = typeof window.KNOWMI_APP === "string" && !!window.ReactNativeWebView;
-const toApp = (msg) => { try { window.ReactNativeWebView.postMessage(JSON.stringify(msg)); return true; } catch { return false; } };
+// Détection fiable : l'appli ajoute « KnowMiApp/x.y » à l'identité du navigateur dès le premier chargement
+const IN_APP = /KnowMiApp\//.test(navigator.userAgent) || typeof window.KNOWMI_APP === "string";
+const toApp = (msg) => { try { if (!window.ReactNativeWebView) return false; window.ReactNativeWebView.postMessage(JSON.stringify(msg)); return true; } catch { return false; } };
+function alertBox(near, text) { const m = el("div", { className: "msg err", textContent: text }); near.after(m); setTimeout(() => m.remove(), 6000); }
 async function copyText(text) { if (IN_APP && toApp({ type: "copy", text })) return; await navigator.clipboard.writeText(text); }
 if (!window.supabase) { document.body.textContent = "Impossible de charger le module de connexion. Vérifiez votre accès à Internet puis rechargez la page."; throw new Error("supabase-js absent"); }
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -802,7 +804,11 @@ async function loadQrs() {
     const cv = el("canvas"); drawQr(cv, r.slug, ctx.public_name);
     const url = VISITOR_URL + r.slug;
     const dl = el("a", { className: "btn small", textContent: "Télécharger l'image", download: "QR-" + r.slug + ".png", href: "#" });
-    dl.onclick = (ev) => { const data = cv.toDataURL("image/png"); if (IN_APP) { ev.preventDefault(); toApp({ type: "saveImage", name: "QR-" + r.slug + ".png", dataUrl: data }); } else dl.href = data; };
+    dl.onclick = (ev) => { const data = cv.toDataURL("image/png");
+      if (IN_APP) { ev.preventDefault();
+        if (toApp({ type: "saveImage", name: "QR-" + r.slug + ".png", dataUrl: data })) { dl.textContent = "Partage ouvert…"; setTimeout(() => { dl.textContent = "Télécharger l'image"; }, 2500); }
+        else alertBox(dl, "Partage indisponible : faites une capture d'écran du code QR.");
+      } else dl.href = data; };
     const info = el("div", {},
       el("div", { className: "slug", textContent: r.slug }),
       el("span", { className: "badge " + (r.status === "active" ? "b-active" : "b-suspended"), textContent: r.status === "active" ? "Actif" : "Désactivé" }),
