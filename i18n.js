@@ -354,6 +354,20 @@
     "Version figée : créez une nouvelle version": "Locked version: create a new version",
     "Vous avez déjà 3 espaces en attente de paiement : finalisez-en un avant d'en créer un autre": "You already have 3 spaces awaiting payment: complete one before creating another",
 
+
+    // --- Mois offert ---
+    "Premier mois offert": "First month free",
+    "Organisation créée. Votre mois offert est actif jusqu'au {0} : ouvrez-la pour créer votre page, vos fiches et votre code QR.": "Organisation created. Your free month is active until {0}: open it to create your page, your cards and your QR code.",
+    "Mois offert terminé le {0}.": "Free month ended on {0}.",
+    "Mois offert terminé le {0}. Choisissez une formule pour remettre votre page en ligne.": "Free month ended on {0}. Choose a plan to put your page back online.",
+    "Mois offert : votre accès gratuit est actif jusqu'au {0}.": "Free month: your free access is active until {0}.",
+    "Mois offert : votre accès gratuit est actif jusqu'au {0}. Choisissez une formule avant cette date pour garder votre page en ligne sans interruption.": "Free month: your free access is active until {0}. Choose a plan before then to keep your page online without interruption.",
+    "Démarrer mon mois offert": "Start my free month",
+    "Le mois offert a déjà été utilisé par ce compte.": "This account has already used its free month.",
+    "Mois offert activé jusqu'au {0}. Votre page peut être mise en ligne dès maintenant.": "Free month activated until {0}. Your page can go online right now.",
+    "testez KnowMi gratuitement pendant 30 jours, sans moyen de paiement.": "try KnowMi free for 30 days, no payment method needed.",
+    "Seul le créateur de l'organisation peut démarrer l'essai gratuit": "Only the creator of the organisation can start the free trial",
+
     // --- Pays ---
     "Bénin": "Benin", "Côte d'Ivoire": "Côte d'Ivoire", "Guinée-Bissau": "Guinea-Bissau", "Sénégal": "Senegal",
     "Cameroun": "Cameroon", "Centrafrique": "Central African Republic", "Guinée équatoriale": "Equatorial Guinea",
@@ -388,6 +402,7 @@
     "code-help": "<b>Two ways to do it:</b><br>• <b>Without clicking</b>: in the e-mail, right-click the “Sign in” button → “Copy link address”, then paste it here.<br>• <b>If you already clicked</b>: a “This site can't be reached” page (localhost) opened. That's normal. Click the address bar of that page, copy the whole address (Ctrl+A then Ctrl+C), then paste it here.",
     "del-text": "This action is <b>permanent</b>. Your account is deleted immediately. Organisations you are the sole owner of are closed: their cards, QR codes, invitations and suggestions are erased, and their QR codes stop working. Payment references are kept for accounting obligations. <a href=\"suppression-compte.html\">Learn more</a>",
     "entries-intro": "The chat answers <b>only</b> with published cards. A card goes through: draft → to approve → published. Nothing is visible until it is published.",
+    "trial-offer": "<b>First month free</b>: your first organisation is active right away, free for 30 days. Try KnowMi with your real information, no payment method needed.",
     "notice": "<b>In an emergency, go to the emergency department immediately or call emergency services.</b><br>Answers come only from information published by the organisation; they do not replace a consultation. Your questions are not stored."
   };
 

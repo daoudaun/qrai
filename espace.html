@@ -161,6 +161,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       <div class="card">
         <h2>Inscrire une organisation</h2>
         <p class="muted small">Entreprise, établissement de santé, institution, ONG ou professionnel. Vous en devenez le propriétaire.</p>
+        <p class="msg ok" id="trial-offer" data-i18n-html="trial-offer" hidden><b>Premier mois offert</b> : votre première organisation est active tout de suite, gratuitement pendant 30 jours. Testez KnowMi avec vos vraies informations, sans moyen de paiement.</p>
         <form id="f-org">
           <label for="o-name">Nom</label>
           <input id="o-name" type="text" required minlength="2" maxlength="120" placeholder="Ex. Clinique Les Palmiers">
@@ -245,6 +246,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     <div class="card" id="pay-card" hidden>
       <h2>Abonnement</h2>
       <div id="sub-state"></div>
+      <div id="trial-msg"></div>
       <div id="pay-zone">
       <div class="row">
         <div><label for="s-plan">Formule</label><select id="s-plan"></select></div>
@@ -469,6 +471,12 @@ async function enter() {
   const { data } = await sb.rpc("am_i_operator");
   isOperator = data === true; $("tabs").hidden = !isOperator;
   await loadOrgs(); show("v-home");
+  refreshTrialOffer();
+}
+let TRIAL_OK = false;
+async function refreshTrialOffer() {
+  const { data } = await sb.rpc("trial_available");
+  TRIAL_OK = data === true; $("trial-offer").hidden = !TRIAL_OK;
 }
 
 // ---------- Onglets ----------
@@ -521,11 +529,13 @@ $("f-org").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
   else cur = COUNTRIES.find(c => c[0] === cc)[2];
   if (!/^[A-Z]{2}$/.test(cc) || !/^[A-Z]{3}$/.test(cur)) return say("org-msg", t("Indiquez un code pays de 2 lettres et une monnaie de 3 lettres."));
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  const { error } = await sb.rpc("create_organization", { p_name: $("o-name").value.trim(), p_kind: $("o-kind").value, p_country: cc, p_currency: cur, p_locale: window.KM ? KM.lang : "fr", p_timezone: tz });
+  const { data: newId, error } = await sb.rpc("create_organization", { p_name: $("o-name").value.trim(), p_kind: $("o-kind").value, p_country: cc, p_currency: cur, p_locale: window.KM ? KM.lang : "fr", p_timezone: tz });
   if (error) return say("org-msg", errText(error));
   ev.target.reset(); $("other-country").hidden = true;
-  say("org-msg", t("Organisation créée. Ouvrez-la pour activer l'accès et inviter votre équipe."), "ok");
-  loadOrgs();
+  const { data: created } = await sb.from("organizations").select("trial_ends_at").eq("id", newId).maybeSingle();
+  if (created && created.trial_ends_at) say("org-msg", t("Organisation créée. Votre mois offert est actif jusqu'au {0} : ouvrez-la pour créer votre page, vos fiches et votre code QR.", fmtDay(created.trial_ends_at)), "ok");
+  else say("org-msg", t("Organisation créée. Ouvrez-la pour activer l'accès et inviter votre équipe."), "ok");
+  loadOrgs(); refreshTrialOffer();
 }); });
 
 $("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
@@ -575,9 +585,16 @@ async function loadSubscription() {
     const wanted = new URLSearchParams(location.search).get("formule");
     if (wanted && PLANS.some(p => p.id === wanted)) $("s-plan").value = wanted;
   }
-  const { data: org } = await sb.from("organizations").select("status, plan, paid_until").eq("id", current.org_id).maybeSingle();
+  const { data: org } = await sb.from("organizations").select("status, plan, paid_until, trial_ends_at, created_by").eq("id", current.org_id).maybeSingle();
   const box = $("sub-state");
-  if (org && org.plan && org.paid_until) {
+  const inTrial = org && org.trial_ends_at && org.paid_until && new Date(org.paid_until).getTime() === new Date(org.trial_ends_at).getTime();
+  if (inTrial) {
+    const over = new Date(org.trial_ends_at) < new Date();
+    box.replaceChildren(el("div", { className: "msg " + (over ? "err" : "ok"),
+      textContent: over ? t(IN_APP ? "Mois offert terminé le {0}." : "Mois offert terminé le {0}. Choisissez une formule pour remettre votre page en ligne.", fmtDay(org.trial_ends_at))
+                        : t(IN_APP ? "Mois offert : votre accès gratuit est actif jusqu'au {0}." : "Mois offert : votre accès gratuit est actif jusqu'au {0}. Choisissez une formule avant cette date pour garder votre page en ligne sans interruption.", fmtDay(org.trial_ends_at)) }));
+    $("s-plan").value = org.plan;
+  } else if (org && org.plan && org.paid_until) {
     const p = PLANS.find(x => x.id === org.plan);
     const late = new Date(org.paid_until) < new Date();
     box.replaceChildren(el("div", { className: "msg " + (late ? "err" : "ok"),
@@ -587,6 +604,19 @@ async function loadSubscription() {
     box.replaceChildren(el("div", { className: "msg ok", textContent: t("Accès actif (activation manuelle, sans échéance).") }));
   } else {
     box.replaceChildren(el("div", { className: "msg info", textContent: IN_APP ? t("Aucun abonnement actif pour cette organisation.") : t("Choisissez une formule et payez : votre accès est activé automatiquement dès la confirmation du paiement.") }));
+    // Mois offert encore disponible pour ce compte : démarrage en un clic (gratuit, donc aussi dans l'application)
+    if (org && org.status === "pending_payment" && org.created_by === me.id && TRIAL_OK) {
+      const go = el("button", { className: "btn", type: "button", textContent: t("Démarrer mon mois offert") });
+      go.onclick = async () => {
+        go.disabled = true;
+        const { data, error } = await sb.rpc("start_trial", { p_org: current.org_id });
+        if (error) { go.disabled = false; return say("trial-msg", errText(error)); }
+        if (!data || !data.ok) { go.remove(); return say("trial-msg", t("Le mois offert a déjà été utilisé par ce compte.")); }
+        say("trial-msg", t("Mois offert activé jusqu'au {0}. Votre page peut être mise en ligne dès maintenant.", fmtDay(data.trial_ends_at)), "ok");
+        TRIAL_OK = false; refreshOrg();
+      };
+      box.append(el("p", { className: "small", style: "margin:10px 0 0" }, el("b", { textContent: t("Premier mois offert") }), " — " + t("testez KnowMi gratuitement pendant 30 jours, sans moyen de paiement.")), go);
+    }
   }
   showPrice();
 }
