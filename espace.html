@@ -107,7 +107,8 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     <img class="logo" src="logo-96.png" alt="" width="38" height="38">
     <div class="brand">KnowMi<small>Espace partenaire</small></div>
     <div class="sp"></div>
-    <span id="who" class="small muted"></span>
+    <span id="who" class="small muted" data-i18n-skip></span>
+    <button id="lang" class="btn ghost small" type="button" style="flex:0 0 auto">EN</button>
     <button id="logout" class="btn ghost small" hidden>Se déconnecter</button>
   </header>
 
@@ -125,7 +126,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         <p class="msg info" id="sent-to"></p>
         <label for="code">Collez ici le lien de l'e-mail ou l'adresse de la page ouverte</label>
         <input id="code" type="text" autocomplete="one-time-code" maxlength="4000" required placeholder="Collez ici">
-        <div class="small muted" id="code-help" style="margin-top:8px"><b>Deux façons de faire :</b><br>
+        <div class="small muted" id="code-help" data-i18n-html="code-help" style="margin-top:8px"><b>Deux façons de faire :</b><br>
           • <b>Sans cliquer</b> : dans l'e-mail, clic droit sur le bouton « Sign in » → « Copier l'adresse du lien », puis collez ici.<br>
           • <b>Si vous avez déjà cliqué</b> : une page « Ce site est inaccessible » (localhost) s'est ouverte. C'est normal. Cliquez dans la barre d'adresse de cette page, copiez toute l'adresse (Ctrl+A puis Ctrl+C), puis collez-la ici.</div>
         <div class="row">
@@ -216,7 +217,20 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         <div id="resale-msg"></div>
       </div>
     </div>
-    <p class="small muted" style="text-align:center;margin-top:18px"><a href="confidentialite.html">Confidentialité</a> · <a href="conditions.html">Conditions</a> · <a href="suppression-compte.html">Supprimer mon compte</a></p>
+    <p class="small muted" style="text-align:center;margin-top:18px"><a href="confidentialite.html">Confidentialité</a> · <a href="conditions.html">Conditions</a> · <a href="#" id="del-open">Supprimer mon compte</a></p>
+    <div class="card" id="del-card" hidden>
+      <h2>Supprimer mon compte</h2>
+      <p class="small muted" data-i18n-html="del-text">Cette action est <b>définitive</b>. Votre compte est supprimé immédiatement. Les organisations dont vous êtes le seul propriétaire sont fermées : leurs fiches, codes QR, invitations et suggestions sont effacés, et leurs codes QR cessent de fonctionner. Les références de paiement sont conservées pour les obligations comptables. <a href="suppression-compte.html">En savoir plus</a></p>
+      <form id="f-del">
+        <label for="del-confirm">Pour confirmer, tapez SUPPRIMER</label>
+        <input id="del-confirm" type="text" required autocomplete="off" autocapitalize="characters" maxlength="20" placeholder="SUPPRIMER">
+        <div class="row">
+          <button class="btn danger" type="submit">Supprimer définitivement</button>
+          <button class="btn ghost" type="button" id="del-cancel">Annuler</button>
+        </div>
+      </form>
+      <div id="del-msg"></div>
+    </div>
   </section>
 
   <!-- Organisation -->
@@ -224,7 +238,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     <button class="back" id="back">← Mes organisations</button>
     <div class="card">
       <div class="row" style="align-items:flex-start">
-        <div style="flex:1 1 auto"><h1 id="org-name"></h1><p class="muted small" id="org-meta"></p></div>
+        <div style="flex:1 1 auto"><h1 id="org-name" data-i18n-skip></h1><p class="muted small" id="org-meta" data-i18n-skip></p></div>
         <span id="org-status" class="badge" style="flex:0 0 auto"></span>
       </div>
     </div>
@@ -272,7 +286,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
 
     <div class="card" id="entries-card" hidden>
       <h2>Fiches d'information</h2>
-      <p class="muted small">Le chat répond <b>uniquement</b> avec les fiches publiées. Une fiche passe par : brouillon → à valider → publiée. Rien n'est visible tant que ce n'est pas publié.</p>
+      <p class="muted small" data-i18n-html="entries-intro">Le chat répond <b>uniquement</b> avec les fiches publiées. Une fiche passe par : brouillon → à valider → publiée. Rien n'est visible tant que ce n'est pas publié.</p>
       <div id="entry-tpl" class="chips"></div>
       <form id="f-entry" hidden>
         <label for="e-key">Thème</label>
@@ -337,8 +351,11 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
 
   <p class="small muted" style="text-align:center;margin-top:30px">KnowMi · données hébergées dans l'Union européenne (Paris)</p>
 </div>
+<script src="i18n.js"></script>
 
 <script>
+const t = window.KM ? KM.t : (s) => s, LOC = window.KM ? KM.locale : "fr-FR";
+if (window.KM) KM.langButton(document.getElementById("lang")); else document.getElementById("lang").hidden = true;
 const SUPABASE_URL = "https://zvynitsffqtaiebtayda.supabase.co";
 const SUPABASE_KEY = "sb_publishable_JdO1h7Z0cB4ZMWZhat3mIQ_H6_6bAkT";
 // Adresse publique de la page visiteur (GitHub Pages)
@@ -349,15 +366,15 @@ const IN_APP = /KnowMiApp\//.test(navigator.userAgent) || typeof window.KNOWMI_A
 const toApp = (msg) => { try { if (!window.ReactNativeWebView) return false; window.ReactNativeWebView.postMessage(JSON.stringify(msg)); return true; } catch { return false; } };
 // Réponse de l'application mobile après une action du pont (erreur affichée sous le bouton concerné)
 let bridgeBtn = null;
-window.__knowmiNative = (r) => { if (r && r.ok === false && bridgeBtn) alertBox(bridgeBtn, r.text || "Action impossible"); };
+window.__knowmiNative = (r) => { if (r && r.ok === false && bridgeBtn) alertBox(bridgeBtn, r.text || t("Action impossible")); };
 function alertBox(near, text) { const m = el("div", { className: "msg err", textContent: text }); near.after(m); setTimeout(() => m.remove(), 6000); }
 async function copyText(text) { if (IN_APP && toApp({ type: "copy", text })) return; await navigator.clipboard.writeText(text); }
-if (!window.supabase) { document.body.textContent = "Impossible de charger le module de connexion. Vérifiez votre accès à Internet puis rechargez la page."; throw new Error("supabase-js absent"); }
+if (!window.supabase) { document.body.textContent = t("Impossible de charger le module de connexion. Vérifiez votre accès à Internet puis rechargez la page."); throw new Error("supabase-js absent"); }
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const ROLES = { owner: "Propriétaire", editor: "Rédaction", validator: "Validation", suggestions: "Suggestions" };
-const KINDS = { health: "Santé", company: "Entreprise", institution: "Institution", ngo: "ONG", pro: "Professionnel" };
-const STATUS = { pending_payment: ["En attente de paiement", "b-pending"], active: ["Actif", "b-active"], suspended: ["Suspendu", "b-suspended"] };
+const ROLES = { owner: t("Propriétaire"), editor: t("Rédaction"), validator: t("Validation"), suggestions: t("Suggestions") };
+const KINDS = { health: t("Santé"), company: t("Entreprise"), institution: t("Institution"), ngo: t("ONG"), pro: t("Professionnel") };
+const STATUS = { pending_payment: [t("En attente de paiement"), "b-pending"], active: [t("Actif"), "b-active"], suspended: [t("Suspendu"), "b-suspended"] };
 const COUNTRIES = [
   ["BJ","Bénin","XOF"],["BF","Burkina Faso","XOF"],["CI","Côte d'Ivoire","XOF"],["GW","Guinée-Bissau","XOF"],["ML","Mali","XOF"],
   ["NE","Niger","XOF"],["SN","Sénégal","XOF"],["TG","Togo","XOF"],["CM","Cameroun","XAF"],["CF","Centrafrique","XAF"],
@@ -371,11 +388,11 @@ const $ = (id) => document.getElementById(id);
 const el = (tag, props = {}, ...kids) => { const n = document.createElement(tag); Object.assign(n, props); kids.forEach(k => n.append(k)); return n; };
 const say = (box, text, kind = "err") => { $(box).replaceChildren(text ? el("div", { className: "msg " + kind, textContent: text }) : ""); };
 const errText = (e) => {
-  const m = (e && (e.message || e.error_description)) || "Erreur inconnue";
-  if (/rate limit|too many/i.test(m)) return "Trop de tentatives. Patientez quelques minutes puis réessayez.";
-  if (/expired|invalid.*otp|token has expired|otp/i.test(m)) return "Code incorrect ou expiré. Demandez un nouveau code.";
-  if (/Failed to fetch|NetworkError/i.test(m)) return "Connexion impossible. Vérifiez votre accès à Internet.";
-  return m.charAt(0).toUpperCase() + m.slice(1);
+  const m = (e && (e.message || e.error_description)) || t("Erreur inconnue");
+  if (/rate limit|too many/i.test(m)) return t("Trop de tentatives. Patientez quelques minutes puis réessayez.");
+  if (/expired|invalid.*otp|token has expired|otp/i.test(m)) return t("Code incorrect ou expiré. Demandez un nouveau code.");
+  if (/Failed to fetch|NetworkError/i.test(m)) return t("Connexion impossible. Vérifiez votre accès à Internet.");
+  return t(m.charAt(0).toUpperCase() + m.slice(1));
 };
 async function busy(form, fn) {
   const b = form.querySelector("button[type=submit]"); b.disabled = true;
@@ -394,8 +411,8 @@ $("f-email").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.t
   const redirect = /^https:/.test(location.protocol) ? location.origin + location.pathname : undefined;
   const { error } = await sb.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true, emailRedirectTo: redirect } });
   if (error) return say("login-msg", errText(error));
-  $("sent-to").textContent = (IN_APP ? "Saisissez ci-dessous le code reçu par e-mail. " : /^https:/.test(location.protocol) ? "Ouvrez l'e-mail et cliquez simplement sur « Sign in » : vous reviendrez ici, connecté. " : "") + "E-mail envoyé à " + pendingEmail + " (expéditeur Supabase, objet « Your sign-in link »). Regardez aussi dans les courriers indésirables.";
-  if (IN_APP) { $("code").placeholder = "Code reçu par e-mail"; $("code").inputMode = "numeric"; $("code-help").hidden = true; }
+  $("sent-to").textContent = (IN_APP ? t("Saisissez ci-dessous le code reçu par e-mail. ") : /^https:/.test(location.protocol) ? t("Ouvrez l'e-mail et cliquez simplement sur « Sign in » : vous reviendrez ici, connecté. ") : "") + t("E-mail envoyé à {0} (expéditeur Supabase, objet « Your sign-in link »). Regardez aussi dans les courriers indésirables.", pendingEmail);
+  if (IN_APP) { $("code").placeholder = t("Code reçu par e-mail"); $("code").inputMode = "numeric"; $("code-help").hidden = true; }
   $("f-email").hidden = true; $("f-code").hidden = false; $("code").focus();
 }); });
 $("change-email").onclick = () => { $("f-code").hidden = true; $("f-email").hidden = false; say("login-msg", ""); };
@@ -405,13 +422,13 @@ $("f-code").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
   if (/access_token=/.test(raw) && /refresh_token=/.test(raw)) {
     const frag = new URLSearchParams(raw.slice(raw.indexOf("#") + 1).split("?")[0]);
     const access_token = frag.get("access_token"), refresh_token = frag.get("refresh_token");
-    if (!access_token || !refresh_token) return say("login-msg", "Adresse incomplète. Copiez toute l'adresse de la page, du début à la fin.");
+    if (!access_token || !refresh_token) return say("login-msg", t("Adresse incomplète. Copiez toute l'adresse de la page, du début à la fin."));
     res = await sb.auth.setSession({ access_token, refresh_token });
   } else if (/^https?:\/\//i.test(raw)) {
-    let u; try { u = new URL(raw); } catch { return say("login-msg", "Ce lien n'est pas valide. Copiez à nouveau l'adresse du lien depuis l'e-mail."); }
+    let u; try { u = new URL(raw); } catch { return say("login-msg", t("Ce lien n'est pas valide. Copiez à nouveau l'adresse du lien depuis l'e-mail.")); }
     const hash = u.searchParams.get("token") || u.searchParams.get("token_hash");
     const type = u.searchParams.get("type") || "magiclink";
-    if (!hash || !/^[A-Za-z0-9_-]{20,}$/.test(hash) || !/^(magiclink|signup|invite|email)$/.test(type)) return say("login-msg", "Ce lien ne vient pas d'un e-mail de connexion KnowMi.");
+    if (!hash || !/^[A-Za-z0-9_-]{20,}$/.test(hash) || !/^(magiclink|signup|invite|email)$/.test(type)) return say("login-msg", t("Ce lien ne vient pas d'un e-mail de connexion KnowMi."));
     res = await sb.auth.verifyOtp({ token_hash: hash, type });
   } else {
     res = await sb.auth.verifyOtp({ email: pendingEmail, token: raw.replace(/\s/g, ""), type: "email" });
@@ -424,9 +441,22 @@ $("f-pass").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
   say("login-msg", "");
   const { error } = await sb.auth.signInWithPassword({ email: $("p-email").value.trim().toLowerCase(), password: $("p-pass").value });
   $("p-pass").value = "";
-  if (error) return say("login-msg", /invalid/i.test(error.message) ? "Adresse ou mot de passe incorrect." : errText(error));
+  if (error) return say("login-msg", /invalid/i.test(error.message) ? t("Adresse ou mot de passe incorrect.") : errText(error));
 }); });
 $("logout").onclick = async () => { await sb.auth.signOut(); };
+// ---------- Suppression du compte (dans l'application, exigence Apple et Google) ----------
+$("del-open").onclick = (ev) => { ev.preventDefault(); $("del-card").hidden = false; say("del-msg", ""); $("del-card").scrollIntoView({ behavior: "smooth", block: "center" }); };
+$("del-cancel").onclick = () => { $("del-card").hidden = true; $("del-confirm").value = ""; };
+$("f-del").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
+  const word = $("del-confirm").value.trim().toUpperCase();
+  if (word !== "SUPPRIMER" && word !== t("SUPPRIMER")) return say("del-msg", t("Tapez exactement SUPPRIMER pour confirmer."));
+  // Le serveur attend toujours le mot français, quelle que soit la langue de l'interface
+  const { error } = await sb.rpc("delete_my_account", { p_confirm: "SUPPRIMER" });
+  if (error) return say("del-msg", errText(error));
+  $("del-confirm").value = ""; $("del-card").hidden = true;
+  await sb.auth.signOut();
+  say("login-msg", t("Votre compte a été supprimé. Merci d'avoir utilisé KnowMi."), "ok");
+}); });
 
 sb.auth.onAuthStateChange((_evt, session) => {
   const user = session && session.user;
@@ -443,10 +473,10 @@ async function enter() {
 
 // ---------- Onglets ----------
 $("tabs").addEventListener("click", (ev) => {
-  const t = ev.target.closest("button[data-tab]"); if (!t) return;
-  $("tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === t));
-  $("t-mine").hidden = t.dataset.tab !== "mine"; $("t-op").hidden = t.dataset.tab !== "op";
-  if (t.dataset.tab === "op") { loadPending(); loadResaleOrgs(); }
+  const tb = ev.target.closest("button[data-tab]"); if (!tb) return;
+  $("tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === tb));
+  $("t-mine").hidden = tb.dataset.tab !== "mine"; $("t-op").hidden = tb.dataset.tab !== "op";
+  if (tb.dataset.tab === "op") { loadPending(); loadResaleOrgs(); }
 });
 async function loadResaleOrgs() {
   const { data, error } = await sb.from("organizations").select("id, name, country, status").order("name");
@@ -455,24 +485,24 @@ async function loadResaleOrgs() {
 }
 $("f-resale").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
   const amount = Number($("r-amount").value.replace(/\s/g, "").replace(",", "."));
-  if (!(amount > 0)) return say("resale-msg", "Indiquez le montant encaissé par le revendeur.");
+  if (!(amount > 0)) return say("resale-msg", t("Indiquez le montant encaissé par le revendeur."));
   const { data, error } = await sb.rpc("record_reseller_sale", { p_org: $("r-org").value, p_plan: $("r-plan").value, p_period: $("r-period").value,
     p_reference: $("r-ref").value, p_amount: amount, p_currency: $("r-cur").value });
   if (error) return say("resale-msg", errText(error));
-  if (!data.ok) return say("resale-msg", data.reason === "ref_already_used" ? "Cette référence a déjà été utilisée." : "Vente refusée (" + data.reason + ").");
-  ev.target.reset(); say("resale-msg", "Vente enregistrée : organisation active jusqu'au " + fmtDay(data.paid_until) + ".", "ok"); loadResaleOrgs();
+  if (!data.ok) return say("resale-msg", data.reason === "ref_already_used" ? t("Cette référence a déjà été utilisée.") : t("Vente refusée ({0}).", data.reason));
+  ev.target.reset(); say("resale-msg", t("Vente enregistrée : organisation active jusqu'au {0}.", fmtDay(data.paid_until)), "ok"); loadResaleOrgs();
 }); });
 
 // ---------- Organisations ----------
-COUNTRIES.forEach(([c, n, cur]) => $("o-country").append(el("option", { value: c, textContent: n + " (" + cur + ")" })));
-$("o-country").append(el("option", { value: "OTHER", textContent: "Autre pays…" }));
+COUNTRIES.forEach(([c, n, cur]) => $("o-country").append(el("option", { value: c, textContent: t(n) + " (" + cur + ")" })));
+$("o-country").append(el("option", { value: "OTHER", textContent: t("Autre pays…") }));
 $("o-country").onchange = () => { $("other-country").hidden = $("o-country").value !== "OTHER"; };
 
 async function loadOrgs() {
   const { data, error } = await sb.rpc("my_organizations");
   const box = $("orgs");
   if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
-  if (!data.length) return box.replaceChildren(el("p", { className: "muted", textContent: "Aucune organisation pour l'instant. Inscrivez la vôtre ci-dessous, ou rejoignez une équipe avec un code d'invitation." }));
+  if (!data.length) return box.replaceChildren(el("p", { className: "muted", textContent: t("Aucune organisation pour l'instant. Inscrivez la vôtre ci-dessous, ou rejoignez une équipe avec un code d'invitation.") }));
   box.replaceChildren(...data.map(o => {
     const [label, cls] = STATUS[o.status] || [o.status, ""];
     const b = el("button", { className: "org", type: "button" },
@@ -489,19 +519,19 @@ $("f-org").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
   let cc = $("o-country").value, cur;
   if (cc === "OTHER") { cc = $("o-cc").value.trim().toUpperCase(); cur = $("o-cur").value.trim().toUpperCase(); }
   else cur = COUNTRIES.find(c => c[0] === cc)[2];
-  if (!/^[A-Z]{2}$/.test(cc) || !/^[A-Z]{3}$/.test(cur)) return say("org-msg", "Indiquez un code pays de 2 lettres et une monnaie de 3 lettres.");
+  if (!/^[A-Z]{2}$/.test(cc) || !/^[A-Z]{3}$/.test(cur)) return say("org-msg", t("Indiquez un code pays de 2 lettres et une monnaie de 3 lettres."));
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-  const { error } = await sb.rpc("create_organization", { p_name: $("o-name").value.trim(), p_kind: $("o-kind").value, p_country: cc, p_currency: cur, p_locale: "fr", p_timezone: tz });
+  const { error } = await sb.rpc("create_organization", { p_name: $("o-name").value.trim(), p_kind: $("o-kind").value, p_country: cc, p_currency: cur, p_locale: window.KM ? KM.lang : "fr", p_timezone: tz });
   if (error) return say("org-msg", errText(error));
   ev.target.reset(); $("other-country").hidden = true;
-  say("org-msg", "Organisation créée. Ouvrez-la pour activer l'accès et inviter votre équipe.", "ok");
+  say("org-msg", t("Organisation créée. Ouvrez-la pour activer l'accès et inviter votre équipe."), "ok");
   loadOrgs();
 }); });
 
 $("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
   const { error } = await sb.rpc("accept_invitation", { p_code: $("j-code").value });
   if (error) return say("join-msg", errText(error));
-  $("j-code").value = ""; say("join-msg", "Bienvenue dans l'équipe !", "ok"); loadOrgs();
+  $("j-code").value = ""; say("join-msg", t("Bienvenue dans l'équipe !"), "ok"); loadOrgs();
 }); });
 
 // ---------- Détail d'une organisation ----------
@@ -514,7 +544,7 @@ window.addEventListener("popstate", () => { if (!$("v-org").hidden) goHome(); })
 async function openOrg(o) {
   current = o; const owner = o.roles.includes("owner");
   $("org-name").textContent = o.name;
-  $("org-meta").textContent = (KINDS[o.kind] || o.kind) + " · " + o.country + " · " + o.currency + " · votre rôle : " + o.roles.map(r => ROLES[r] || r).join(", ");
+  $("org-meta").textContent = t("{0} · {1} · {2} · votre rôle : {3}", KINDS[o.kind] || o.kind, o.country, o.currency, o.roles.map(r => ROLES[r] || r).join(", "));
   const [label, cls] = STATUS[o.status] || [o.status, ""];
   $("org-status").textContent = label; $("org-status").className = "badge " + cls;
   $("pay-card").hidden = !owner;
@@ -535,13 +565,13 @@ const KKIAPAY_PUBLIC_KEY = "e8b2e760bf0011f1bbe5711636fbb1b5";
 const KKIAPAY_SANDBOX = true;
 let PLANS = [], kkpOrder = null, kkpListening = false;
 const fmtXof = (n) => Number(n).toLocaleString("fr-FR").replace(/ | /g, " ") + " F CFA";
-const fmtDay = (d) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+const fmtDay = (d) => new Date(d).toLocaleDateString(LOC, { day: "numeric", month: "long", year: "numeric" });
 
 async function loadSubscription() {
   if (!PLANS.length) {
     const { data } = await sb.from("plans").select("id, name, daily_questions, price_xof_month, price_usd_month, ls_checkout_month, ls_checkout_year").order("sort");
     PLANS = data || [];
-    $("s-plan").replaceChildren(...PLANS.map(p => el("option", { value: p.id, textContent: p.name + " · " + p.daily_questions + " questions IA / jour" })));
+    $("s-plan").replaceChildren(...PLANS.map(p => el("option", { value: p.id, textContent: t(p.name) + " · " + t("{0} questions IA / jour", p.daily_questions) })));
     const wanted = new URLSearchParams(location.search).get("formule");
     if (wanted && PLANS.some(p => p.id === wanted)) $("s-plan").value = wanted;
   }
@@ -551,21 +581,21 @@ async function loadSubscription() {
     const p = PLANS.find(x => x.id === org.plan);
     const late = new Date(org.paid_until) < new Date();
     box.replaceChildren(el("div", { className: "msg " + (late ? "err" : "ok"),
-      textContent: "Formule " + (p ? p.name : org.plan) + (late ? " — échue depuis le " : " — payée jusqu'au ") + fmtDay(org.paid_until) + (late ? (IN_APP ? "." : ". Renouvelez pour garder votre page active.") : ".") }));
+      textContent: late ? t(IN_APP ? "Formule {0} — échue depuis le {1}." : "Formule {0} — échue depuis le {1}. Renouvelez pour garder votre page active.", p ? t(p.name) : org.plan, fmtDay(org.paid_until)) : t("Formule {0} — payée jusqu'au {1}.", p ? t(p.name) : org.plan, fmtDay(org.paid_until)) }));
     $("s-plan").value = org.plan;
   } else if (org && org.status === "active") {
-    box.replaceChildren(el("div", { className: "msg ok", textContent: "Accès actif (activation manuelle, sans échéance)." }));
+    box.replaceChildren(el("div", { className: "msg ok", textContent: t("Accès actif (activation manuelle, sans échéance).") }));
   } else {
-    box.replaceChildren(el("div", { className: "msg info", textContent: IN_APP ? "Aucun abonnement actif pour cette organisation." : "Choisissez une formule et payez : votre accès est activé automatiquement dès la confirmation du paiement." }));
+    box.replaceChildren(el("div", { className: "msg info", textContent: IN_APP ? t("Aucun abonnement actif pour cette organisation.") : t("Choisissez une formule et payez : votre accès est activé automatiquement dès la confirmation du paiement.") }));
   }
   showPrice();
 }
 function showPrice() {
   const p = PLANS.find(x => x.id === $("s-plan").value); if (!p) return;
   const y = $("s-period").value === "year", k = y ? 10 : 1;
-  $("s-price").textContent = "Afrique : " + fmtXof(p.price_xof_month * k) + " · International : $" + Number(p.price_usd_month) * k + (y ? " par an" : " par mois");
+  $("s-price").textContent = t(y ? "Afrique : {0} · International : ${1} par an" : "Afrique : {0} · International : ${1} par mois", fmtXof(p.price_xof_month * k), Number(p.price_usd_month) * k);
   $("pay-ls").disabled = !(y ? p.ls_checkout_year : p.ls_checkout_month);
-  $("pay-ls").title = $("pay-ls").disabled ? "Paiement international bientôt disponible" : "";
+  $("pay-ls").title = $("pay-ls").disabled ? t("Paiement international bientôt disponible") : "";
 }
 $("s-plan").onchange = showPrice; $("s-period").onchange = showPrice;
 
@@ -581,16 +611,16 @@ async function newOrder(provider) {
   return data;
 }
 async function confirmKkiapay(orderId, transactionId) {
-  say("pay-msg", "Paiement reçu, vérification en cours…", "info");
+  say("pay-msg", t("Paiement reçu, vérification en cours…"), "info");
   for (let i = 0; i < 4; i++) {
     const r = await fetch(SUPABASE_URL + "/functions/v1/pay-kkiapay", { method: "POST",
       headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY }, body: JSON.stringify({ order_id: orderId, transaction_id: transactionId }) });
     const j = await r.json().catch(() => ({}));
-    if (j.status === "paid") { say("pay-msg", "Paiement confirmé ✓ Votre accès est actif jusqu'au " + fmtDay(j.paid_until) + ".", "ok"); return refreshOrg(); }
+    if (j.status === "paid") { say("pay-msg", t("Paiement confirmé ✓ Votre accès est actif jusqu'au {0}.", fmtDay(j.paid_until)), "ok"); return refreshOrg(); }
     if (j.status !== "not_paid" && j.status !== "verification_failed") break;
     await new Promise(res => setTimeout(res, 5000));
   }
-  say("pay-msg", "Le paiement n'a pas encore pu être confirmé. S'il a bien été débité, il sera pris en compte automatiquement dans quelques minutes ; sinon écrivez à knowmi.contact@gmail.com avec la référence " + transactionId + ".", "info");
+  say("pay-msg", t("Le paiement n'a pas encore pu être confirmé. S'il a bien été débité, il sera pris en compte automatiquement dans quelques minutes ; sinon écrivez à knowmi.contact@gmail.com avec la référence {0}.", transactionId), "info");
 }
 async function refreshOrg() {
   const { data } = await sb.rpc("my_organizations");
@@ -600,7 +630,7 @@ async function refreshOrg() {
 }
 $("pay-kkp").onclick = async () => {
   say("pay-msg", "");
-  if (!KKIAPAY_PUBLIC_KEY) return say("pay-msg", "Le paiement Mobile Money sera ouvert très prochainement.", "info");
+  if (!KKIAPAY_PUBLIC_KEY) return say("pay-msg", t("Le paiement Mobile Money sera ouvert très prochainement."), "info");
   const btn = $("pay-kkp"); btn.disabled = true;
   try {
     await loadScript("https://cdn.kkiapay.me/k.js");
@@ -621,14 +651,14 @@ $("pay-ls").onclick = async () => {
   u.searchParams.set("checkout[custom][order_id]", order.order_id);
   u.searchParams.set("checkout[email]", me.email);
   window.open(u.toString(), "_blank", "noopener");
-  say("pay-msg", "La page de paiement sécurisée s'est ouverte dans un nouvel onglet. Une fois le paiement fait, revenez ici : votre accès s'active automatiquement (rechargez la page après une minute).", "info");
+  say("pay-msg", t("La page de paiement sécurisée s'est ouverte dans un nouvel onglet. Une fois le paiement fait, revenez ici : votre accès s'active automatiquement (rechargez la page après une minute)."), "info");
 };
 
 $("f-act").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
   const { error } = await sb.rpc("request_activation", { p_org: current.org_id, p_sale_reference: $("a-ref").value });
   if (error) return say("act-msg", errText(error));
   $("a-ref").value = "";
-  say("act-msg", "Demande envoyée. Votre accès sera activé dès que le paiement aura été vérifié.", "ok");
+  say("act-msg", t("Demande envoyée. Votre accès sera activé dès que le paiement aura été vérifié."), "ok");
 }); });
 
 async function loadMembers() {
@@ -637,15 +667,15 @@ async function loadMembers() {
   if (error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(error) }));
   const owner = current.roles.includes("owner");
   ul.replaceChildren(...data.filter(m => m.active).map(m => {
-    const li = el("li", {}, el("span", { className: "grow", textContent: (m.display_name ? m.display_name + " · " : "") + m.email + (m.is_me ? " (vous)" : "") }));
+    const li = el("li", {}, el("span", { className: "grow", textContent: (m.display_name ? m.display_name + " · " : "") + m.email + (m.is_me ? t(" (vous)") : "") }));
     m.roles.forEach(r => li.append(el("span", { className: "badge b-role", textContent: ROLES[r] || r })));
     if (owner && !m.is_me) {
-      const rm = el("button", { className: "btn danger small", type: "button", textContent: "Retirer" });
+      const rm = el("button", { className: "btn danger small", type: "button", textContent: t("Retirer le membre") });
       rm.onclick = async () => {
-        if (rm.dataset.armed !== "1") { rm.dataset.armed = "1"; rm.textContent = "Confirmer le retrait"; return; }
+        if (rm.dataset.armed !== "1") { rm.dataset.armed = "1"; rm.textContent = t("Confirmer le retrait"); return; }
         const { error } = await sb.rpc("set_member", { p_org: current.org_id, p_user: m.user_id, p_roles: null, p_active: false });
         if (error) return say("mem-msg", errText(error));
-        say("mem-msg", m.email + " a été retiré de l'équipe.", "ok"); loadMembers();
+        say("mem-msg", t("{0} a été retiré de l'équipe.", m.email), "ok"); loadMembers();
       };
       li.append(rm);
     }
@@ -655,15 +685,15 @@ async function loadMembers() {
 
 $("f-inv").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
   const roles = [...ev.target.querySelectorAll("input[type=checkbox]:checked")].map(c => c.value);
-  if (!roles.length) return say("inv-out", "Choisissez au moins un rôle.");
+  if (!roles.length) return say("inv-out", t("Choisissez au moins un rôle."));
   const email = $("i-email").value.trim();
   const { data: code, error } = await sb.rpc("invite_member", { p_org: current.org_id, p_email: email, p_roles: roles });
   if (error) return say("inv-out", errText(error));
-  const copy = el("button", { className: "btn ghost small", type: "button", textContent: "Copier le message" });
-  const text = "Bonjour, vous êtes invité(e) à rejoindre « " + current.name + " » sur KnowMi. Connectez-vous avec l'adresse " + email + ", puis saisissez ce code d'invitation : " + code + " (valable 7 jours).";
-  copy.onclick = async () => { try { await copyText(text); copy.textContent = "Copié ✓"; } catch { copy.textContent = "Sélectionnez le code ci-dessus"; } };
+  const copy = el("button", { className: "btn ghost small", type: "button", textContent: t("Copier le message") });
+  const text = t("Bonjour, vous êtes invité(e) à rejoindre « {0} » sur KnowMi. Connectez-vous avec l'adresse {1}, puis saisissez ce code d'invitation : {2} (valable 7 jours).", current.name, email, code);
+  copy.onclick = async () => { try { await copyText(text); copy.textContent = t("Copié ✓"); } catch { copy.textContent = t("Sélectionnez le code ci-dessus"); } };
   $("inv-out").replaceChildren(el("div", { className: "msg ok" },
-    el("div", { textContent: "Transmettez ce code à " + email + " (SMS, WhatsApp…). Il ne sera plus affiché ensuite." }),
+    el("div", { textContent: t("Transmettez ce code à {0} (SMS, WhatsApp…). Il ne sera plus affiché ensuite.", email) }),
     el("div", { className: "bigcode", textContent: code }), copy));
   ev.target.reset(); ev.target.querySelector("input[value=editor]").checked = true;
   loadInvites();
@@ -674,11 +704,11 @@ async function loadInvites() {
     .eq("org_id", current.org_id).is("accepted_at", null).is("revoked_at", null).gt("expires_at", new Date().toISOString()).order("created_at");
   const ul = $("invites");
   if (error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(error) }));
-  if (!data.length) return ul.replaceChildren(el("li", { className: "muted small", textContent: "Aucune invitation en attente." }));
+  if (!data.length) return ul.replaceChildren(el("li", { className: "muted small", textContent: t("Aucune invitation en attente.") }));
   ul.replaceChildren(...data.map(i => {
-    const li = el("li", {}, el("span", { className: "grow", textContent: i.email + " · expire le " + new Date(i.expires_at).toLocaleDateString("fr-FR") }));
+    const li = el("li", {}, el("span", { className: "grow", textContent: t("{0} · expire le {1}", i.email, new Date(i.expires_at).toLocaleDateString(LOC)) }));
     i.roles.forEach(r => li.append(el("span", { className: "badge b-role", textContent: ROLES[r] || r })));
-    const x = el("button", { className: "btn ghost small", type: "button", textContent: "Annuler" });
+    const x = el("button", { className: "btn ghost small", type: "button", textContent: t("Annuler") });
     x.onclick = async () => { const { error } = await sb.rpc("revoke_invitation", { p_invitation: i.id }); if (error) return say("inv-out", errText(error)); loadInvites(); };
     li.append(x); return li;
   }));
@@ -689,7 +719,7 @@ async function loadInvites() {
 let ctx = null;
 const canEdit = () => current && (current.roles.includes("owner") || current.roles.includes("editor"));
 const canValidate = () => current && current.roles.includes("validator");
-const VSTATUS = { DRAFT: "Brouillon", IN_REVIEW: "À valider", APPROVED: "Approuvée", PUBLISHED: "Publiée", WITHDRAWN: "Retirée", EXPIRED: "Expirée" };
+const VSTATUS = { DRAFT: t("Brouillon"), IN_REVIEW: t("À valider"), APPROVED: t("Approuvée"), PUBLISHED: t("Publiée"), WITHDRAWN: t("Retirée"), EXPIRED: t("Expirée") };
 const TEMPLATES = {
   health: [["Horaires","Quels sont vos horaires d'ouverture ?"],["Adresse et accès","Où êtes-vous situés et comment venir ?"],["Contacts et urgences","Comment vous joindre, y compris en urgence ?"],["Services","Quels services et spécialités proposez-vous ?"],["Rendez-vous","Comment prendre rendez-vous ?"],["Tarifs et paiement","Quels sont vos tarifs et moyens de paiement ?"],["Assurances","Acceptez-vous les assurances et mutuelles ?"],["Documents à apporter","Quels documents dois-je apporter ?"]],
   default: [["Horaires","Quels sont vos horaires d'ouverture ?"],["Adresse et accès","Où êtes-vous situés ?"],["Contacts","Comment vous joindre ?"],["Services","Quels services proposez-vous ?"],["Tarifs et paiement","Quels sont vos tarifs et moyens de paiement ?"]]
@@ -710,13 +740,13 @@ async function loadPublic() {
 function renderPub() {
   const v = $("pub-view");
   if (!ctx) {
-    v.replaceChildren(el("p", { textContent: canEdit() ? "Créez d'abord votre page publique." : "La page publique n'est pas encore créée." }));
+    v.replaceChildren(el("p", { textContent: canEdit() ? t("Créez d'abord votre page publique.") : t("La page publique n'est pas encore créée.") }));
     if (canEdit()) { $("p-name").value = current.name; $("p-welcome").value = ""; $("f-pub").hidden = false; }
     return;
   }
-  const edit = el("button", { className: "btn ghost small", type: "button", textContent: "Modifier" });
+  const edit = el("button", { className: "btn ghost small", type: "button", textContent: t("Modifier") });
   edit.onclick = () => { $("p-name").value = ctx.public_name; $("p-welcome").value = (ctx.welcome && ctx.welcome.fr) || ""; $("f-pub").hidden = false; };
-  v.replaceChildren(el("div", {}, el("b", { textContent: ctx.public_name }), el("p", { className: "muted", textContent: (ctx.welcome && ctx.welcome.fr) || "(pas de message d'accueil)" })));
+  v.replaceChildren(el("div", {}, el("b", { textContent: ctx.public_name }), el("p", { className: "muted", textContent: (ctx.welcome && ctx.welcome.fr) || t("(pas de message d'accueil)") })));
   if (canEdit()) v.append(edit);
 }
 $("pub-cancel").onclick = () => { $("f-pub").hidden = !!ctx; };
@@ -726,7 +756,7 @@ $("f-pub").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
                : sb.from("contexts").insert({ ...row, org_id: current.org_id, name: "Accueil", status: "active" });
   const { error } = await q;
   if (error) return say("pub-msg", errText(error));
-  say("pub-msg", "Page publique enregistrée.", "ok"); loadPublic();
+  say("pub-msg", t("Page publique enregistrée."), "ok"); loadPublic();
 }); });
 
 function renderTemplates() {
@@ -734,8 +764,8 @@ function renderTemplates() {
   if (!canEdit()) { $("entry-new").hidden = true; return; }
   $("entry-new").hidden = false;
   (TEMPLATES[current.kind] || TEMPLATES.default).forEach(([k, q]) => {
-    const b = el("button", { className: "chip", type: "button", textContent: "+ " + k });
-    b.onclick = () => openEntryForm(k, q, "");
+    const b = el("button", { className: "chip", type: "button", textContent: "+ " + t(k) });
+    b.onclick = () => openEntryForm(t(k), t(q), "");
     box.append(b);
   });
 }
@@ -750,7 +780,7 @@ $("f-entry").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.t
   const { error } = await sb.rpc("save_entry", { p_context: ctx.id, p_key: $("e-key").value, p_question: $("e-q").value, p_answer: $("e-a").value, p_valid_until: $("e-until").value, p_locale: "fr" });
   if (error) return say("entry-msg", errText(error));
   $("f-entry").hidden = true;
-  say("entry-msg", "Fiche enregistrée en brouillon. Soumettez-la puis publiez-la pour qu'elle apparaisse.", "ok");
+  say("entry-msg", t("Fiche enregistrée en brouillon. Soumettez-la puis publiez-la pour qu'elle apparaisse."), "ok");
   loadEntries();
 }); });
 
@@ -781,24 +811,24 @@ async function loadEntries() {
     const head = el("div", { className: "head" }, el("span", { className: "q", textContent: latest.question }),
       el("span", { className: "badge b-" + latest.status, textContent: VSTATUS[latest.status] + " · v" + latest.version }));
     li.append(head, el("div", { className: "a", textContent: latest.answer }),
-      el("div", { className: "small muted", textContent: "Thème : " + it.business_key + " · valable jusqu'au " + new Date(latest.valid_until).toLocaleDateString("fr-FR") + (live && live !== latest ? " · la version " + live.version + " reste publiée en attendant" : "") }));
+      el("div", { className: "small muted", textContent: t("Thème : {0} · valable jusqu'au {1}", it.business_key, new Date(latest.valid_until).toLocaleDateString(LOC)) + (live && live !== latest ? t(" · la version {0} reste publiée en attendant", live.version) : "") }));
     const acts = el("div", { className: "acts", style: "margin-top:8px" });
     const btn = (label, fn, cls = "btn small") => { const b = el("button", { className: cls, type: "button", textContent: label }); b.onclick = async () => { b.disabled = true; await fn(); }; acts.append(b); };
     if (latest.status === "DRAFT" && canEdit()) {
-      if (canValidate()) btn("Publier maintenant", () => setStatus(latest.id, ["IN_REVIEW", "APPROVED", "PUBLISHED"]));
-      btn("Soumettre pour validation", () => setStatus(latest.id, ["IN_REVIEW"]), canValidate() ? "btn ghost small" : "btn small");
+      if (canValidate()) btn(t("Publier maintenant"), () => setStatus(latest.id, ["IN_REVIEW", "APPROVED", "PUBLISHED"]));
+      btn(t("Soumettre pour validation"), () => setStatus(latest.id, ["IN_REVIEW"]), canValidate() ? "btn ghost small" : "btn small");
     }
     if (latest.status === "IN_REVIEW" && canValidate()) {
-      btn("Approuver et publier", () => setStatus(latest.id, ["APPROVED", "PUBLISHED"]));
-      btn("Renvoyer en brouillon", () => setStatus(latest.id, ["DRAFT"]), "btn ghost small");
+      btn(t("Approuver et publier"), () => setStatus(latest.id, ["APPROVED", "PUBLISHED"]));
+      btn(t("Renvoyer en brouillon"), () => setStatus(latest.id, ["DRAFT"]), "btn ghost small");
     }
-    if (latest.status === "APPROVED" && canValidate()) btn("Publier", () => setStatus(latest.id, ["PUBLISHED"]));
-    if (latest.status === "PUBLISHED" && canValidate()) btn("Retirer", () => setStatus(latest.id, ["WITHDRAWN"]), "btn danger small");
-    if (canEdit() && latest.status !== "DRAFT" && latest.status !== "IN_REVIEW") btn("Modifier (nouvelle version)", async () => { openEntryForm(it.business_key, latest.question, latest.answer); }, "btn ghost small");
+    if (latest.status === "APPROVED" && canValidate()) btn(t("Publier"), () => setStatus(latest.id, ["PUBLISHED"]));
+    if (latest.status === "PUBLISHED" && canValidate()) btn(t("Retirer"), () => setStatus(latest.id, ["WITHDRAWN"]), "btn danger small");
+    if (canEdit() && latest.status !== "DRAFT" && latest.status !== "IN_REVIEW") btn(t("Modifier (nouvelle version)"), async () => { openEntryForm(it.business_key, latest.question, latest.answer); }, "btn ghost small");
     if (acts.childElementCount) li.append(acts);
     return li;
   }).filter(Boolean);
-  ul.replaceChildren(...(lis.length ? lis : [el("li", { className: "muted small", textContent: "Aucune fiche pour l'instant. Commencez par les thèmes proposés ci-dessus." })]));
+  ul.replaceChildren(...(lis.length ? lis : [el("li", { className: "muted small", textContent: t("Aucune fiche pour l'instant. Commencez par les thèmes proposés ci-dessus.") })]));
   setReady(published);
 }
 
@@ -806,8 +836,8 @@ function setReady(published) {
   const b = $("ready");
   const ok = current.status === "active" && ctx && published > 0;
   b.className = "badge " + (ok ? "b-active" : "b-pending");
-  b.textContent = ok ? "En ligne · " + published + " fiche" + (published > 1 ? "s" : "") + " publiée" + (published > 1 ? "s" : "")
-    : current.status !== "active" ? "Hors ligne : compte non activé" : "Hors ligne : aucune fiche publiée";
+  b.textContent = ok ? t(published > 1 ? "En ligne · {0} fiches publiées" : "En ligne · {0} fiche publiée", published)
+    : current.status !== "active" ? t("Hors ligne : compte non activé") : t("Hors ligne : aucune fiche publiée");
 }
 
 function drawQr(canvas, slug, label) {
@@ -819,61 +849,61 @@ function drawQr(canvas, slug, label) {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) g.fillRect((c + 4) * cell, (r + 4) * cell, cell, cell);
   g.textAlign = "center";
   g.font = "700 46px system-ui, sans-serif"; g.fillText(label.slice(0, 34), W / 2, size + 40);
-  g.font = "500 34px system-ui, sans-serif"; g.fillStyle = "#0b8a7c"; g.fillText("Scannez pour poser vos questions", W / 2, size + 95);
+  g.font = "500 34px system-ui, sans-serif"; g.fillStyle = "#0b8a7c"; g.fillText(t("Scannez pour poser vos questions"), W / 2, size + 95);
   g.font = "600 30px ui-monospace, monospace"; g.fillStyle = "#56696c"; g.fillText(slug, W / 2, size + 145);
 }
 
 async function loadQrs() {
   const box = $("qrs"); $("qr-new").hidden = !canEdit();
-  if (typeof qrcode !== "function") return box.replaceChildren(el("div", { className: "msg err", textContent: "Le module QR n'a pas pu se charger. Vérifiez votre connexion et rechargez la page." }));
+  if (typeof qrcode !== "function") return box.replaceChildren(el("div", { className: "msg err", textContent: t("Le module QR n'a pas pu se charger. Vérifiez votre connexion et rechargez la page.") }));
   const { data, error } = await sb.from("qr_entries").select("id, slug, status, created_at").eq("context_id", ctx.id).order("created_at");
   if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
   box.replaceChildren(...data.map(r => {
     const cv = el("canvas"); drawQr(cv, r.slug, ctx.public_name);
     const url = VISITOR_URL + r.slug;
-    const dl = el("a", { className: "btn small", textContent: "Télécharger l'image", download: "QR-" + r.slug + ".png", href: "#" });
+    const dl = el("a", { className: "btn small", textContent: t("Télécharger l'image"), download: "QR-" + r.slug + ".png", href: "#" });
     dl.onclick = (ev) => { const data = cv.toDataURL("image/png");
       if (IN_APP) { ev.preventDefault();
-        bridgeBtn = dl; if (toApp({ type: "saveImage", name: "QR-" + r.slug + ".png", dataUrl: data })) { dl.textContent = "Partage ouvert…"; setTimeout(() => { dl.textContent = "Télécharger l'image"; }, 2500); }
-        else alertBox(dl, "Partage indisponible : faites une capture d'écran du code QR.");
+        bridgeBtn = dl; if (toApp({ type: "saveImage", name: "QR-" + r.slug + ".png", dataUrl: data })) { dl.textContent = t("Partage ouvert…"); setTimeout(() => { dl.textContent = t("Télécharger l'image"); }, 2500); }
+        else alertBox(dl, t("Partage indisponible : faites une capture d'écran du code QR."));
       } else dl.href = data; };
     const info = el("div", {},
       el("div", { className: "slug", textContent: r.slug }),
-      el("span", { className: "badge " + (r.status === "active" ? "b-active" : "b-suspended"), textContent: r.status === "active" ? "Actif" : "Désactivé" }),
+      el("span", { className: "badge " + (r.status === "active" ? "b-active" : "b-suspended"), textContent: r.status === "active" ? t("Actif") : t("Désactivé") }),
       el("div", { style: "margin:8px 0" }, el("a", { className: "link", href: url, target: "_blank", rel: "noopener", textContent: url })));
     const acts = el("div", { className: "acts", style: "display:flex;gap:6px;flex-wrap:wrap" }, dl);
     if (canEdit()) {
-      const t = el("button", { className: r.status === "active" ? "btn danger small" : "btn ghost small", type: "button", textContent: r.status === "active" ? "Désactiver" : "Réactiver" });
-      t.onclick = async () => {
-        if (r.status === "active" && t.dataset.armed !== "1") { t.dataset.armed = "1"; t.textContent = "Confirmer la désactivation"; return; }
+      const tg = el("button", { className: r.status === "active" ? "btn danger small" : "btn ghost small", type: "button", textContent: r.status === "active" ? t("Désactiver") : t("Réactiver") });
+      tg.onclick = async () => {
+        if (r.status === "active" && tg.dataset.armed !== "1") { tg.dataset.armed = "1"; tg.textContent = t("Confirmer la désactivation"); return; }
         const { error } = await sb.from("qr_entries").update({ status: r.status === "active" ? "disabled" : "active" }).eq("id", r.id);
         if (error) return say("qr-msg", errText(error)); loadQrs();
       };
-      acts.append(t);
+      acts.append(tg);
     }
     info.append(acts);
     return el("div", { className: "qr" }, cv, info);
   }));
-  if (!data.length) box.replaceChildren(el("p", { className: "muted small", textContent: "Aucun code QR pour l'instant." }));
+  if (!data.length) box.replaceChildren(el("p", { className: "muted small", textContent: t("Aucun code QR pour l'instant.") }));
   const u = await sb.from("ask_usage").select("questions").eq("org_id", current.org_id).eq("day", new Date().toISOString().slice(0, 10));
-  $("usage").textContent = "Questions posées au chat aujourd'hui : " + ((u.data && u.data[0] && u.data[0].questions) || 0) + " (plafond : 300 par jour).";
+  $("usage").textContent = t("Questions posées au chat aujourd'hui : {0} (plafond : 300 par jour).", (u.data && u.data[0] && u.data[0].questions) || 0);
 }
 $("qr-new").onclick = async () => {
   const { error } = await sb.rpc("create_qr", { p_context: ctx.id });
   if (error) return say("qr-msg", errText(error));
-  say("qr-msg", "Code QR créé.", "ok"); loadQrs();
+  say("qr-msg", t("Code QR créé."), "ok"); loadQrs();
 };
 
 
 // ---------- Boîte à suggestions ----------
-const SSTATUS = { RECU: "Nouvelle", EN_REVUE: "En lecture", EN_COURS: "En cours", TRAITE: "Traitée", ARCHIVE: "Archivée", ABUS: "Abusive" };
+const SSTATUS = { RECU: t("Nouvelle"), EN_REVUE: t("En lecture"), EN_COURS: t("En cours"), TRAITE: t("Traitée"), ARCHIVE: t("Archivée"), ABUS: t("Abusive") };
 const SFILTER = { open: ["RECU", "EN_REVUE", "EN_COURS"], done: ["TRAITE"], archived: ["ARCHIVE", "ABUS"] };
 let suggFilter = "open";
 const canSugg = () => current && (current.roles.includes("owner") || current.roles.includes("suggestions"));
 $("sugg-tabs").addEventListener("click", (ev) => {
-  const t = ev.target.closest("button[data-f]"); if (!t) return;
-  suggFilter = t.dataset.f;
-  $("sugg-tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === t));
+  const tb = ev.target.closest("button[data-f]"); if (!tb) return;
+  suggFilter = tb.dataset.f;
+  $("sugg-tabs").querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b === tb));
   loadSuggestions();
 });
 async function loadSuggestions() {
@@ -886,35 +916,35 @@ async function loadSuggestions() {
     sb.from("suggestions").select("id", { count: "exact", head: true }).eq("org_id", current.org_id).eq("status", "RECU")
   ]);
   const nb = counts.count || 0;
-  $("sugg-new").textContent = nb ? nb + " nouvelle" + (nb > 1 ? "s" : "") : "Aucune nouvelle";
+  $("sugg-new").textContent = nb ? t(nb > 1 ? "{0} nouvelles" : "{0} nouvelle", nb) : t("Aucune nouvelle");
   $("sugg-new").className = "badge " + (nb ? "b-pending" : "b-active");
   const ul = $("suggs");
   if (list.error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(list.error) }));
-  if (!list.data.length) return ul.replaceChildren(el("li", { className: "muted small", textContent: suggFilter === "open" ? "Aucune suggestion à traiter. Les messages des visiteurs apparaîtront ici." : "Rien dans cette rubrique." }));
+  if (!list.data.length) return ul.replaceChildren(el("li", { className: "muted small", textContent: suggFilter === "open" ? t("Aucune suggestion à traiter. Les messages des visiteurs apparaîtront ici.") : t("Rien dans cette rubrique.") }));
   ul.replaceChildren(...list.data.map(sg => {
     const li = el("li", { className: "sg" });
     const meta = el("div", { className: "meta" },
       el("span", { className: "badge b-" + sg.status, textContent: SSTATUS[sg.status] || sg.status }),
-      el("span", { textContent: new Date(sg.created_at).toLocaleString("fr-FR", { dateStyle: "medium", timeStyle: "short" }) }),
-      el("span", { textContent: "Réf. SG-" + sg.id.replace(/-/g, "").slice(0, 6).toUpperCase() }));
+      el("span", { textContent: new Date(sg.created_at).toLocaleString(LOC, { dateStyle: "medium", timeStyle: "short" }) }),
+      el("span", { textContent: t("Réf. SG-{0}", sg.id.replace(/-/g, "").slice(0, 6).toUpperCase()) }));
     li.append(meta, el("div", { className: "msgtxt", textContent: sg.message }));
     if (sg.contact) {
-      const c = el("div", { className: "small" }, el("b", { textContent: "Pour recontacter : " }), el("span", { textContent: sg.contact + " " }));
+      const c = el("div", { className: "small" }, el("b", { textContent: t("Pour recontacter : ") }), el("span", { textContent: sg.contact + " " }));
       const digits = sg.contact.replace(/[^\d+]/g, "");
-      if (/^\+?\d{8,15}$/.test(digits)) c.append(el("a", { href: "tel:" + digits, textContent: "Appeler", className: "btn ghost small" }));
-      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sg.contact.trim())) c.append(el("a", { href: "mailto:" + sg.contact.trim(), textContent: "Écrire", className: "btn ghost small" }));
+      if (/^\+?\d{8,15}$/.test(digits)) c.append(el("a", { href: "tel:" + digits, textContent: t("Appeler"), className: "btn ghost small" }));
+      else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(sg.contact.trim())) c.append(el("a", { href: "mailto:" + sg.contact.trim(), textContent: t("Écrire"), className: "btn ghost small" }));
       li.append(c);
     }
-    const sel = el("select", { ariaLabel: "Statut" });
+    const sel = el("select", { ariaLabel: t("Statut") });
     Object.entries(SSTATUS).forEach(([k, v]) => sel.append(el("option", { value: k, textContent: v, selected: k === sg.status })));
-    const note = el("textarea", { rows: 1, maxLength: 1000, placeholder: "Note interne (non visible du visiteur)", value: sg.internal_note || "" });
-    const save = el("button", { className: "btn small", type: "button", textContent: "Enregistrer" });
+    const note = el("textarea", { rows: 1, maxLength: 1000, placeholder: t("Note interne (non visible du visiteur)"), value: sg.internal_note || "" });
+    const save = el("button", { className: "btn small", type: "button", textContent: t("Enregistrer") });
     save.onclick = async () => {
       save.disabled = true;
       const { error } = await sb.from("suggestions").update({ status: sel.value, internal_note: note.value.trim() || null }).eq("id", sg.id);
       save.disabled = false;
       if (error) return say("sugg-msg", errText(error));
-      say("sugg-msg", "Suggestion mise à jour.", "ok"); loadSuggestions();
+      say("sugg-msg", t("Suggestion mise à jour."), "ok"); loadSuggestions();
     };
     li.append(el("div", { className: "ctl" }, sel, note, save));
     return li;
@@ -926,25 +956,25 @@ async function loadPending() {
   const { data, error } = await sb.rpc("pending_activations");
   const ul = $("pending");
   if (error) return ul.replaceChildren(el("li", { className: "msg err", textContent: errText(error) }));
-  if (!data.length) return ul.replaceChildren(el("li", { className: "muted", textContent: "Aucune demande en attente." }));
+  if (!data.length) return ul.replaceChildren(el("li", { className: "muted", textContent: t("Aucune demande en attente.") }));
   ul.replaceChildren(...data.map(r => {
     const li = el("li", {},
       el("span", { className: "grow" },
         el("b", { textContent: r.org_name }), " · " + r.country, el("br"),
-        el("span", { className: "small muted", textContent: "Réf. " + r.sale_reference + " · " + r.requested_by_email + " · " + new Date(r.created_at).toLocaleString("fr-FR") })));
-    const ok = el("button", { className: "btn small", type: "button", textContent: "Paiement vérifié : activer" });
-    const no = el("button", { className: "btn danger small", type: "button", textContent: "Rejeter" });
+        el("span", { className: "small muted", textContent: t("Réf. {0} · {1} · {2}", r.sale_reference, r.requested_by_email, new Date(r.created_at).toLocaleString(LOC)) })));
+    const ok = el("button", { className: "btn small", type: "button", textContent: t("Paiement vérifié : activer") });
+    const no = el("button", { className: "btn danger small", type: "button", textContent: t("Rejeter") });
     ok.onclick = async () => {
-      if (ok.dataset.armed !== "1") { ok.dataset.armed = "1"; ok.textContent = "Confirmer l'activation"; return; }
+      if (ok.dataset.armed !== "1") { ok.dataset.armed = "1"; ok.textContent = t("Confirmer l'activation"); return; }
       const { error } = await sb.rpc("confirm_activation", { p_request: r.request_id, p_confirm: true });
       if (error) return say("op-msg", errText(error));
-      say("op-msg", r.org_name + " est activée.", "ok"); loadPending();
+      say("op-msg", t("{0} est activée.", r.org_name), "ok"); loadPending();
     };
     no.onclick = async () => {
-      if (no.dataset.armed !== "1") { no.dataset.armed = "1"; no.textContent = "Confirmer le rejet"; return; }
+      if (no.dataset.armed !== "1") { no.dataset.armed = "1"; no.textContent = t("Confirmer le rejet"); return; }
       const { error } = await sb.rpc("confirm_activation", { p_request: r.request_id, p_confirm: false, p_reason: "Paiement introuvable" });
       if (error) return say("op-msg", errText(error));
-      say("op-msg", "Demande rejetée.", "info"); loadPending();
+      say("op-msg", t("Demande rejetée."), "info"); loadPending();
     };
     li.append(ok, no); return li;
   }));
