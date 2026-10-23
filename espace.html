@@ -154,6 +154,12 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       <button role="tab" aria-selected="false" data-tab="op">Opérateur</button>
     </div>
     <div id="t-mine">
+      <div class="card" id="received-card" hidden>
+        <h2>Invitations reçues</h2>
+        <p class="muted small">Une organisation vous a invité(e) à rejoindre son équipe. Cliquez sur « Rejoindre » pour y accéder.</p>
+        <ul class="list" id="received"></ul>
+        <div id="received-msg"></div>
+      </div>
       <div class="card">
         <h2>Mes organisations</h2>
         <div id="orgs"></div>
@@ -343,7 +349,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
           <label><input type="checkbox" value="suggestions"> Suggestions</label>
           <label><input type="checkbox" value="owner"> Propriétaire</label>
         </div>
-        <button class="btn" type="submit">Créer le code d'invitation</button>
+        <button class="btn" type="submit">Envoyer l'invitation</button>
       </form>
       <div id="inv-out"></div>
       <h3 style="margin-top:18px">Invitations en attente</h3>
@@ -506,7 +512,30 @@ COUNTRIES.forEach(([c, n, cur]) => $("o-country").append(el("option", { value: c
 $("o-country").append(el("option", { value: "OTHER", textContent: t("Autre pays…") }));
 $("o-country").onchange = () => { $("other-country").hidden = $("o-country").value !== "OTHER"; };
 
+// ---------- Invitations reçues (d'après l'adresse e-mail du compte connecté) ----------
+async function loadReceived() {
+  const { data, error } = await sb.rpc("my_invitations");
+  if (error || !data || !data.length) { $("received-card").hidden = true; return; }
+  $("received-card").hidden = false;
+  $("received").replaceChildren(...data.map(i => {
+    const li = el("li", {}, el("span", { className: "grow" },
+      el("b", { textContent: i.org_name }),
+      el("span", { className: "small muted", textContent: " · " + i.roles.map(r => ROLES[r] || r).join(", ") + (i.invited_by ? " · " + t("invité(e) par {0}", i.invited_by) : "") })));
+    const join = el("button", { className: "btn small", type: "button", textContent: t("Rejoindre") });
+    join.onclick = async () => {
+      join.disabled = true;
+      const { error } = await sb.rpc("accept_invitation_by_id", { p_invitation: i.invitation_id });
+      join.disabled = false;
+      if (error) return say("received-msg", errText(error));
+      say("received-msg", t("Bienvenue dans l'équipe de « {0} » !", i.org_name), "ok");
+      loadOrgs();
+    };
+    li.append(join); return li;
+  }));
+}
+
 async function loadOrgs() {
+  loadReceived();
   const { data, error } = await sb.rpc("my_organizations");
   const box = $("orgs");
   if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
@@ -717,17 +746,32 @@ $("f-inv").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
   const roles = [...ev.target.querySelectorAll("input[type=checkbox]:checked")].map(c => c.value);
   if (!roles.length) return say("inv-out", t("Choisissez au moins un rôle."));
   const email = $("i-email").value.trim();
+  await inviteAndSend(email, roles);
+  ev.target.reset(); ev.target.querySelector("input[value=editor]").checked = true;
+}); });
+
+// Crée l'invitation (nouveau code), l'envoie par e-mail, et garde le code affiché en secours
+async function inviteAndSend(email, roles) {
+  say("inv-out", "");
   const { data: code, error } = await sb.rpc("invite_member", { p_org: current.org_id, p_email: email, p_roles: roles });
   if (error) return say("inv-out", errText(error));
+  say("inv-out", t("Envoi de l'invitation à {0}…", email), "info");
+  let mailed = false, why = "";
+  try {
+    const { data, error: fnErr } = await sb.functions.invoke("send-invitation", { body: { org_id: current.org_id, email, code, lang: window.KM ? KM.lang : "fr" } });
+    mailed = !fnErr && data && data.status === "sent";
+    if (fnErr && fnErr.context && typeof fnErr.context.json === "function") { try { why = (await fnErr.context.json()).message || ""; } catch { /* réponse illisible */ } }
+  } catch { mailed = false; }
   const copy = el("button", { className: "btn ghost small", type: "button", textContent: t("Copier le message") });
   const text = t("Bonjour, vous êtes invité(e) à rejoindre « {0} » sur KnowMi. Connectez-vous avec l'adresse {1}, puis saisissez ce code d'invitation : {2} (valable 7 jours).", current.name, email, code);
   copy.onclick = async () => { try { await copyText(text); copy.textContent = t("Copié ✓"); } catch { copy.textContent = t("Sélectionnez le code ci-dessus"); } };
-  $("inv-out").replaceChildren(el("div", { className: "msg ok" },
-    el("div", { textContent: t("Transmettez ce code à {0} (SMS, WhatsApp…). Il ne sera plus affiché ensuite.", email) }),
+  $("inv-out").replaceChildren(el("div", { className: "msg " + (mailed ? "ok" : "info") },
+    el("div", { textContent: mailed
+      ? t("Invitation envoyée par e-mail à {0}. Il lui suffit de se connecter avec cette adresse et de cliquer sur « Rejoindre ». Code de secours, si besoin :", email)
+      : t("L'e-mail n'a pas pu partir{0}. Transmettez ce code à {1} (SMS, WhatsApp…) : en se connectant avec cette adresse, la personne verra aussi l'invitation dans son espace.", why ? " (" + why + ")" : "", email) }),
     el("div", { className: "bigcode", textContent: code }), copy));
-  ev.target.reset(); ev.target.querySelector("input[value=editor]").checked = true;
   loadInvites();
-}); });
+}
 
 async function loadInvites() {
   const { data, error } = await sb.from("invitations").select("id, email, roles, expires_at")
@@ -738,9 +782,11 @@ async function loadInvites() {
   ul.replaceChildren(...data.map(i => {
     const li = el("li", {}, el("span", { className: "grow", textContent: t("{0} · expire le {1}", i.email, new Date(i.expires_at).toLocaleDateString(LOC)) }));
     i.roles.forEach(r => li.append(el("span", { className: "badge b-role", textContent: ROLES[r] || r })));
+    const re = el("button", { className: "btn ghost small", type: "button", textContent: t("Renvoyer") });
+    re.onclick = async () => { re.disabled = true; try { await inviteAndSend(i.email, i.roles); } finally { re.disabled = false; } };
     const x = el("button", { className: "btn ghost small", type: "button", textContent: t("Annuler") });
     x.onclick = async () => { const { error } = await sb.rpc("revoke_invitation", { p_invitation: i.id }); if (error) return say("inv-out", errText(error)); loadInvites(); };
-    li.append(x); return li;
+    li.append(re, x); return li;
   }));
 }
 
