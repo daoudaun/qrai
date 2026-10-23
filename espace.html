@@ -67,6 +67,7 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .checks label{display:flex;gap:6px;align-items:center;font-weight:500;margin:0}
 .msg{padding:10px 12px;border-radius:10px;margin-top:12px;font-size:14px}
 .msg.err{background:var(--bad-soft);color:var(--bad)} .msg.ok{background:var(--good-soft);color:var(--good)} .msg.info{background:var(--info-soft);color:var(--info)}
+#org-guide a{color:var(--accent);font-weight:700}
 .bigcode{font:800 26px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.12em;padding:14px;border:2px dashed var(--accent);border-radius:12px;text-align:center;margin:10px 0;user-select:all}
 .back{background:none;border:0;color:var(--accent);font-weight:700;padding:0;margin-bottom:10px}
 .tabs{display:flex;gap:6px;margin-bottom:14px}
@@ -247,6 +248,15 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       <div class="row" style="align-items:flex-start">
         <div style="flex:1 1 auto"><h1 id="org-name" data-i18n-skip></h1><p class="muted small" id="org-meta" data-i18n-skip></p></div>
         <span id="org-status" class="badge" style="flex:0 0 auto"></span>
+      </div>
+      <div id="org-guide" hidden>
+        <p class="small" style="margin:10px 0 4px"><b>Les étapes pour mettre votre organisation en ligne :</b></p>
+        <ol class="steps small">
+          <li><a href="#" data-goto="pub-card">Remplir la page publique</a> : nom affiché et message d'accueil.</li>
+          <li>Ajouter et publier vos fiches (horaires, tarifs, services…).</li>
+          <li>Créer et imprimer votre code QR.</li>
+          <li><a href="#" data-goto="invite-card">Inviter votre équipe</a> : la personne reçoit l'invitation par e-mail.</li>
+        </ol>
       </div>
     </div>
     <div class="card" id="pay-card" hidden>
@@ -565,6 +575,10 @@ $("f-org").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.tar
   if (created && created.trial_ends_at) say("org-msg", t("Organisation créée. Votre mois offert est actif jusqu'au {0} : ouvrez-la pour créer votre page, vos fiches et votre code QR.", fmtDay(created.trial_ends_at)), "ok");
   else say("org-msg", t("Organisation créée. Ouvrez-la pour activer l'accès et inviter votre équipe."), "ok");
   loadOrgs(); refreshTrialOffer();
+  // Ouvre directement la nouvelle organisation : le partenaire enchaîne sur sa page publique
+  const { data: mine } = await sb.rpc("my_organizations");
+  const fresh = (mine || []).find(x => x.org_id === newId);
+  if (fresh) openOrg(fresh);
 }); });
 
 $("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
@@ -589,6 +603,8 @@ async function openOrg(o) {
   $("pay-card").hidden = !owner;
   $("pay-zone").hidden = IN_APP;
   $("invite-card").hidden = !owner;
+  $("org-guide").hidden = !owner;
+  $("org-guide").querySelectorAll("[data-goto]").forEach(a => a.onclick = (ev) => { ev.preventDefault(); const c = $(a.dataset.goto); if (c) c.scrollIntoView({ behavior: "smooth", block: "start" }); });
   ["act-msg","mem-msg","inv-out","pay-msg"].forEach(b => say(b, ""));
   show("v-org");
   if (!history.state || history.state.v !== "org") history.pushState({ v: "org" }, "", PAGE + "#org");
