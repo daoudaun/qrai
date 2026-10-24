@@ -45,7 +45,7 @@ p{margin:0 0 10px} .muted{color:var(--muted)} .small{font-size:13px}
 @keyframes in{from{opacity:0;transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.card{animation:none}}
 label{display:block;font-weight:600;font-size:13px;margin:12px 0 5px}
-input[type=text],input[type=email],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
+input[type=text],input[type=email],input[type=tel],select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
 input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .code-in{font:700 22px/1 ui-monospace,Menlo,monospace;letter-spacing:.3em;text-align:center}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -99,6 +99,21 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
 .sg .ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
 .sg select{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface2)}
 .sg textarea{flex:1 1 220px;min-height:38px}
+.ok-text{color:var(--good);font-weight:700}
+.wz-steps{display:flex;gap:6px;list-style:none;padding:0;margin:0 0 6px;counter-reset:none}
+.wz-steps li{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);text-align:center;cursor:default}
+.wz-steps li span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:var(--surface2);border:1px solid var(--line)}
+.wz-steps li b{font-weight:600}
+.wz-steps li.done{cursor:pointer;color:var(--good)} .wz-steps li.done span{background:var(--good-soft);border-color:var(--good-soft);color:var(--good)}
+.wz-steps li.cur{color:var(--ink)} .wz-steps li.cur span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.wz-save{min-height:20px;margin:0 0 6px;text-align:right;color:var(--muted)} .wz-save.ok{color:var(--good)} .wz-save.off{color:var(--warn)}
+.wz-nav{margin-top:6px} .wz-nav .btn{flex:1 1 140px}
+.w-topic{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px;background:var(--surface2)}
+.w-topic.filled{border-color:var(--accent)}
+.w-topic .t{font-weight:700;font-size:14px} .w-topic .q{font-size:12px;color:var(--muted);margin:2px 0 6px}
+.w-topic textarea{background:var(--surface)}
+.w-qr{display:flex;justify-content:center;margin:14px 0} .w-qr canvas{width:min(280px,100%);height:auto;border-radius:12px;border:1px solid var(--line);background:#fff}
+.w-share{display:flex;flex-wrap:wrap;gap:8px} .w-share .btn{flex:1 1 150px;margin-top:0}
 .b-RECU{background:var(--warn-soft);color:var(--warn)} .b-EN_REVUE,.b-EN_COURS{background:var(--info-soft);color:var(--info)} .b-TRAITE{background:var(--good-soft);color:var(--good)} .b-ARCHIVE{background:var(--surface2);color:var(--muted);border:1px solid var(--line)} .b-ABUS{background:var(--bad-soft);color:var(--bad)}
 </style>
 </head>
@@ -168,8 +183,16 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       <div class="card">
         <h2>Inscrire une organisation</h2>
         <p class="muted small">Entreprise, établissement de santé, institution, ONG ou professionnel. Vous en devenez le propriétaire.</p>
-        <p class="msg ok" id="trial-offer" data-i18n-html="trial-offer" hidden><b>Premier mois offert</b> : votre première organisation est active tout de suite, gratuitement pendant 30 jours. Testez KnowMi avec vos vraies informations, sans moyen de paiement.</p>
-        <form id="f-org">
+        <p class="msg ok" id="trial-offer" data-i18n-html="trial-offer2" hidden><b>Premier mois offert</b> : 30 jours gratuits, sans moyen de paiement. Ils démarrent dès que votre code QR est généré.</p>
+        <ol class="steps small" style="margin-bottom:6px">
+          <li>Votre organisation (adresse, téléphone)</li>
+          <li>Votre page d'accueil</li>
+          <li>Vos informations</li>
+          <li>Votre code QR, prêt à imprimer et à partager</li>
+        </ol>
+        <button class="btn" type="button" id="start-setup" style="width:100%">Inscrire mon organisation</button>
+        <p class="small muted" id="resume-setup" hidden style="margin-top:8px"></p>
+        <form id="f-org" hidden>
           <label for="o-name">Nom</label>
           <input id="o-name" type="text" required minlength="2" maxlength="120" placeholder="Ex. Clinique Les Palmiers">
           <div class="row">
@@ -238,6 +261,90 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         </div>
       </form>
       <div id="del-msg"></div>
+    </div>
+  </section>
+
+  <!-- Assistant d'inscription en 4 étapes (sauvegarde automatique) -->
+  <section id="v-setup" hidden>
+    <button class="back" id="setup-back">← Mes organisations</button>
+    <div class="card">
+      <ol class="wz-steps" id="wz-steps">
+        <li data-s="1"><span>1</span><b>Organisation</b></li>
+        <li data-s="2"><span>2</span><b>Page d'accueil</b></li>
+        <li data-s="3"><span>3</span><b>Informations</b></li>
+        <li data-s="4"><span>4</span><b>Code QR</b></li>
+      </ol>
+      <p class="wz-save small" id="wz-save" aria-live="polite"></p>
+
+      <div class="wz" data-step="1">
+        <h2>Votre organisation</h2>
+        <p class="muted small">Tout est enregistré automatiquement au fil de la saisie : vous pouvez fermer l'application et reprendre plus tard.</p>
+        <label for="w-name">Nom de l'organisation</label>
+        <input id="w-name" type="text" maxlength="120" autocomplete="organization" placeholder="Ex. Clinique Les Palmiers">
+        <div class="row">
+          <div><label for="w-kind">Type</label>
+            <select id="w-kind">
+              <option value="health">Santé</option><option value="company">Entreprise</option>
+              <option value="institution">Institution</option><option value="ngo">ONG / association</option>
+              <option value="pro">Professionnel indépendant</option>
+            </select></div>
+          <div><label for="w-country">Pays</label><select id="w-country"></select></div>
+        </div>
+        <div class="row" id="w-other" hidden>
+          <div><label for="w-cc">Code pays (2 lettres)</label><input id="w-cc" type="text" maxlength="2" placeholder="Ex. RW"></div>
+          <div><label for="w-cur">Monnaie (3 lettres)</label><input id="w-cur" type="text" maxlength="3" placeholder="Ex. RWF"></div>
+        </div>
+        <label for="w-address">Adresse complète</label>
+        <textarea id="w-address" rows="2" maxlength="300" placeholder="Ex. Pobè, quartier Ossomou 2, à côté de l'école primaire"></textarea>
+        <p class="small muted">Ville, quartier et un repère connu. Elle sera aussi proposée aux visiteurs.</p>
+        <label for="w-phone">Téléphone de l'accueil</label>
+        <input id="w-phone" type="tel" maxlength="30" autocomplete="tel" placeholder="Ex. +229 01 97 00 00 00">
+      </div>
+
+      <div class="wz" data-step="2" hidden>
+        <h2>Votre page d'accueil</h2>
+        <p class="muted small">C'est ce que voit le visiteur après avoir scanné votre code QR.</p>
+        <label for="w-pub">Nom affiché aux visiteurs</label>
+        <input id="w-pub" type="text" maxlength="120">
+        <label for="w-welcome">Message d'accueil</label>
+        <textarea id="w-welcome" rows="4" maxlength="600"></textarea>
+      </div>
+
+      <div class="wz" data-step="3" hidden>
+        <h2>Vos informations</h2>
+        <p class="muted small">Répondez aux questions que vos visiteurs posent le plus souvent. L'assistant répondra <b>uniquement</b> avec ces informations. Remplissez-en au moins 3 ; laissez vide ce qui ne vous concerne pas.</p>
+        <p class="small" id="w-count"></p>
+        <div id="w-entries"></div>
+        <details id="w-more" style="margin-top:12px"><summary class="small"><b>+ Ajouter une autre information</b></summary>
+          <label for="w-new-key">Thème</label><input id="w-new-key" type="text" maxlength="60" placeholder="Ex. Parking">
+          <label for="w-new-q">Question d'un visiteur</label><input id="w-new-q" type="text" maxlength="300" placeholder="Ex. Y a-t-il un parking ?">
+          <button class="btn ghost small" type="button" id="w-new-add" style="margin-top:10px">Ajouter</button>
+        </details>
+      </div>
+
+      <div class="wz" data-step="4" hidden>
+        <h2>Votre code QR</h2>
+        <div id="w-summary"></div>
+        <button class="btn" type="button" id="w-generate">Générer mon code QR</button>
+        <div id="w-result" hidden>
+          <div class="w-qr"><canvas id="w-canvas"></canvas></div>
+          <div id="w-trial"></div>
+          <div class="w-share">
+            <button class="btn" type="button" id="w-save-img">Enregistrer / partager l'image</button>
+            <button class="btn ghost" type="button" id="w-mail">Recevoir par e-mail</button>
+            <button class="btn ghost" type="button" id="w-copy">Copier le lien</button>
+            <a class="btn ghost" id="w-open" target="_blank" rel="noopener">Voir ma page</a>
+          </div>
+          <div id="w-share-msg"></div>
+          <button class="btn ghost" type="button" id="w-done" style="width:100%">Aller à mon espace</button>
+        </div>
+      </div>
+
+      <div id="wz-msg"></div>
+      <div class="row wz-nav">
+        <button class="btn ghost" type="button" id="wz-prev">Retour</button>
+        <button class="btn" type="button" id="wz-next">Continuer</button>
+      </div>
     </div>
   </section>
 
@@ -417,7 +524,7 @@ async function busy(form, fn) {
   try { await fn(); } finally { b.disabled = false; }
 }
 const PAGE = location.pathname + location.search;
-function show(view) { ["v-login","v-home","v-org"].forEach(v => $(v).hidden = v !== view); window.scrollTo(0, 0); }
+function show(view) { ["v-login","v-home","v-org","v-setup"].forEach(v => $(v).hidden = v !== view); window.scrollTo(0, 0); }
 
 let me = null, current = null, isOperator = false;
 
@@ -545,18 +652,22 @@ async function loadReceived() {
 }
 
 async function loadOrgs() {
-  loadReceived();
+  loadReceived(); refreshResume();
   const { data, error } = await sb.rpc("my_organizations");
   const box = $("orgs");
   if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
   if (!data.length) return box.replaceChildren(el("p", { className: "muted", textContent: t("Aucune organisation pour l'instant. Inscrivez la vôtre ci-dessous, ou rejoignez une équipe avec un code d'invitation.") }));
+  // Organisations dont le parcours d'inscription n'est pas terminé (propriétaire uniquement)
+  const { data: rows } = await sb.from("organizations").select("id, setup_completed_at").in("id", data.map(o => o.org_id));
+  const pending = new Set((rows || []).filter(r => !r.setup_completed_at).map(r => r.id));
   box.replaceChildren(...data.map(o => {
-    const [label, cls] = STATUS[o.status] || [o.status, ""];
+    const todo = pending.has(o.org_id) && o.roles.includes("owner");
+    const [label, cls] = todo ? [t("Inscription à terminer"), "b-pending"] : (STATUS[o.status] || [o.status, ""]);
     const b = el("button", { className: "org", type: "button" },
       el("span", { className: "n", textContent: o.name }),
       el("span", { className: "small muted", textContent: (KINDS[o.kind] || o.kind) + " · " + o.country }),
       el("span", { className: "badge " + cls, textContent: label }));
-    b.onclick = () => openOrg(o);
+    b.onclick = () => todo ? openSetup(o) : openOrg(o);
     return b;
   }));
 }
@@ -589,10 +700,10 @@ $("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
 
 // ---------- Détail d'une organisation ----------
 // Le retour (bouton « Retour », touche retour du téléphone ou du navigateur) ramène à la liste des organisations
-function goHome() { current = null; loadOrgs(); show("v-home"); }
+function goHome() { if (!$("v-setup").hidden) wzFlush(); current = null; loadOrgs(); show("v-home"); }
 if (location.hash === "#org") history.replaceState(null, "", PAGE);
 $("back").onclick = () => { if (history.state && history.state.v === "org") history.back(); else goHome(); };
-window.addEventListener("popstate", () => { if (!$("v-org").hidden) goHome(); });
+window.addEventListener("popstate", () => { if (!$("v-org").hidden || !$("v-setup").hidden) goHome(); });
 
 async function openOrg(o) {
   current = o; const owner = o.roles.includes("owner");
@@ -612,6 +723,349 @@ async function openOrg(o) {
   loadMembers(); if (owner) loadInvites();
   loadPublic();
   loadSuggestions();
+}
+
+// ---------- Assistant d'inscription en 4 étapes ----------
+// Chaque champ est enregistré automatiquement (sur le serveur dès que possible, et sur l'appareil
+// en attendant le réseau). On peut fermer l'appli et reprendre au même endroit.
+const WZ = { org: null, step: 1, ctx: null, timers: {}, jobs: {}, inflight: 0, failed: false, done: false, slug: null, creating: null };
+const WKEY = (k) => "knowmi.setup." + k;
+function wzLocal(key, val) {
+  try { if (val === undefined) return JSON.parse(localStorage.getItem(WKEY(key)) || "null"); if (val === null) localStorage.removeItem(WKEY(key)); else localStorage.setItem(WKEY(key), JSON.stringify(val)); } catch { /* stockage indisponible */ }
+  return null;
+}
+function wzState() {
+  const b = $("wz-save");
+  if (WZ.failed) { b.className = "wz-save small off"; b.textContent = t("Hors connexion : vos saisies sont gardées sur cet appareil et seront enregistrées au retour du réseau."); }
+  else if (WZ.inflight || Object.keys(WZ.timers).length) { b.className = "wz-save small"; b.textContent = t("Enregistrement…"); }
+  else if (WZ.saved) { b.className = "wz-save small ok"; b.textContent = t("✓ Enregistré"); }
+  else { b.className = "wz-save small"; b.textContent = ""; }
+}
+// Programme une sauvegarde (la dernière frappe gagne), relancée automatiquement en cas d'échec réseau
+function wzSchedule(key, job, ms = 900) {
+  WZ.jobs[key] = job; clearTimeout(WZ.timers[key]);
+  WZ.timers[key] = setTimeout(() => wzRun(key), ms); wzState();
+}
+async function wzRun(key) {
+  clearTimeout(WZ.timers[key]); delete WZ.timers[key];
+  const job = WZ.jobs[key]; if (!job) return wzState();
+  delete WZ.jobs[key]; WZ.inflight++; wzState();
+  try { await job(); WZ.saved = true; WZ.failed = false; }
+  catch (e) {
+    const net = /Failed to fetch|NetworkError|network|timeout/i.test(String(e && e.message));
+    if (net) { WZ.failed = true; WZ.jobs[key] = WZ.jobs[key] || job; WZ.timers[key] = setTimeout(() => wzRun(key), 10000); }
+    else say("wz-msg", errText(e));
+  } finally { WZ.inflight--; wzState(); }
+}
+async function wzFlush() {
+  const keys = Object.keys(WZ.jobs);
+  await Promise.all(keys.map(k => wzRun(k)));
+  while (WZ.inflight) await new Promise(r => setTimeout(r, 120));
+  return !WZ.failed;
+}
+window.addEventListener("online", () => { Object.keys(WZ.jobs).forEach(k => wzRun(k)); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && !$("v-setup").hidden) wzFlush(); });
+const rpcOrThrow = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
+
+// Pays (même liste que la création d'organisation)
+COUNTRIES.forEach(([c, n, cur]) => $("w-country").append(el("option", { value: c, textContent: t(n) + " (" + cur + ")" })));
+$("w-country").append(el("option", { value: "OTHER", textContent: t("Autre pays…") }));
+$("w-country").onchange = () => { $("w-other").hidden = $("w-country").value !== "OTHER"; wzStep1Changed(); };
+
+const phoneOk = (p) => { const d = String(p || "").replace(/\D/g, ""); return d.length >= 8 && d.length <= 15; };
+function wzStep1Values() {
+  return { name: $("w-name").value.trim(), kind: $("w-kind").value, country: $("w-country").value,
+    cc: $("w-cc").value.trim().toUpperCase(), cur: $("w-cur").value.trim().toUpperCase(),
+    address: $("w-address").value.trim(), phone: $("w-phone").value.trim() };
+}
+function wzStep1Changed() {
+  const v = wzStep1Values();
+  wzLocal(WZ.org ? "org." + WZ.org.org_id + ".s1" : "new", v);
+  if (!WZ.org) { WZ.saved = true; return wzState(); }   // pas encore créée : gardée sur l'appareil
+  if (v.name.length < 2 || (v.phone && !phoneOk(v.phone))) return;
+  wzSchedule("s1", async () => {
+    await rpcOrThrow("set_org_profile", { p_org: WZ.org.org_id, p_name: v.name, p_address: v.address, p_phone: v.phone });
+    WZ.org.name = v.name; wzLocal("org." + WZ.org.org_id + ".s1", null);
+  });
+}
+["w-name", "w-address", "w-phone", "w-cc", "w-cur"].forEach(id => $(id).addEventListener("input", wzStep1Changed));
+// Le message d'erreur disparaît dès que l'on corrige la saisie
+$("v-setup").addEventListener("input", () => { if ($("wz-msg").firstChild) say("wz-msg", ""); });
+$("w-kind").onchange = wzStep1Changed;
+
+// Étape 2 : page publique (créée au premier enregistrement, puis mise à jour)
+function wzStep2Changed() {
+  const row = { public_name: $("w-pub").value.trim(), welcome: { fr: $("w-welcome").value.trim() } };
+  wzLocal("org." + WZ.org.org_id + ".s2", row);
+  if (row.public_name.length < 2) return;
+  wzSchedule("s2", async () => {
+    if (!WZ.ctx) {
+      if (!WZ.creating) WZ.creating = (async () => {
+        const { data, error } = await sb.from("contexts").insert({ ...row, org_id: WZ.org.org_id, name: "Accueil", status: "active" }).select("id").single();
+        if (error) throw error; WZ.ctx = { id: data.id };
+      })().finally(() => { WZ.creating = null; });
+      await WZ.creating;
+    } else {
+      const { error } = await sb.from("contexts").update(row).eq("id", WZ.ctx.id);
+      if (error) throw error;
+    }
+    wzLocal("org." + WZ.org.org_id + ".s2", null);
+  });
+}
+["w-pub", "w-welcome"].forEach(id => $(id).addEventListener("input", wzStep2Changed));
+
+// Étape 3 : une zone de saisie par thème, enregistrée comme brouillon au fil de la frappe
+const WZ_TOPICS = {
+  health: [["Horaires", "Quels sont vos horaires d'ouverture ?"], ["Adresse et accès", "Où êtes-vous situés et comment venir ?"], ["Contacts et urgences", "Comment vous joindre, y compris en urgence ?"], ["Services", "Quels services et spécialités proposez-vous ?"], ["Rendez-vous", "Comment prendre rendez-vous ?"], ["Tarifs et paiement", "Quels sont vos tarifs et moyens de paiement ?"], ["Assurances", "Acceptez-vous les assurances et mutuelles ?"], ["Documents à apporter", "Quels documents dois-je apporter ?"]],
+  default: [["Horaires", "Quels sont vos horaires d'ouverture ?"], ["Adresse et accès", "Où êtes-vous situés ?"], ["Contacts", "Comment vous joindre ?"], ["Services", "Quels services proposez-vous ?"], ["Tarifs et paiement", "Quels sont vos tarifs et moyens de paiement ?"], ["Démarches et documents", "Quelles démarches suivre et quels documents fournir ?"]]
+};
+// Même calcul que le serveur (save_draft_entry) pour retrouver les fiches déjà saisies
+const slugKey = (k) => k.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+function wzCount() {
+  const n = [...$("w-entries").querySelectorAll("textarea")].filter(a => a.value.trim()).length;
+  $("w-count").textContent = t("{0} information(s) remplie(s) · 3 au minimum", n);
+  $("w-count").className = "small " + (n >= 3 ? "ok-text" : "");
+  return n;
+}
+function wzTopic(label, question, answer) {
+  const key = slugKey(label);
+  if ($("w-entries").querySelector('[data-key="' + key + '"]')) return;
+  const ta = el("textarea", { rows: 2, maxLength: 20000, value: answer || "", placeholder: t("Votre réponse…") });
+  const box = el("div", { className: "w-topic" + (answer ? " filled" : "") },
+    el("div", { className: "t", textContent: t(label) }), el("div", { className: "q", textContent: t(question) }), ta);
+  box.dataset.key = key;
+  ta.addEventListener("input", () => {
+    box.classList.toggle("filled", !!ta.value.trim()); wzCount();
+    const answerNow = ta.value;
+    wzLocal("org." + WZ.org.org_id + ".e." + key, { label, question, answer: answerNow });
+    wzSchedule("e:" + key, async () => {
+      await rpcOrThrow("save_draft_entry", { p_context: WZ.ctx.id, p_key: label, p_question: question, p_answer: answerNow, p_locale: "fr" });
+      wzLocal("org." + WZ.org.org_id + ".e." + key, null);
+    }, 1200);
+  });
+  $("w-entries").append(box);
+  return ta;
+}
+$("w-new-add").onclick = () => {
+  const k = $("w-new-key").value.trim(), q = $("w-new-q").value.trim();
+  if (k.length < 2 || q.length < 3) return say("wz-msg", t("Indiquez un thème et la question du visiteur."));
+  say("wz-msg", "");
+  const ta = wzTopic(k, q, ""); $("w-new-key").value = ""; $("w-new-q").value = ""; $("w-more").open = false;
+  if (ta) ta.focus();
+};
+async function wzLoadEntries() {
+  $("w-entries").replaceChildren();
+  const [items, vers] = await Promise.all([
+    sb.from("content_items").select("id, business_key").eq("context_id", WZ.ctx.id),
+    sb.from("content_versions").select("item_id, version, question, answer").eq("locale", "fr").order("version", { ascending: false })
+  ]);
+  const latest = {};
+  if (!items.error && !vers.error) {
+    const byId = Object.fromEntries(items.data.map(i => [i.id, i.business_key]));
+    vers.data.forEach(v => { const k = byId[v.item_id]; if (k && !latest[k]) latest[k] = v; });
+  }
+  const topics = WZ_TOPICS[WZ.org.kind] || WZ_TOPICS.default;
+  const s1 = { address: WZ.org.address || "", phone: WZ.org.contact_phone || "" };
+  const fresh = [];
+  topics.forEach(([label, q]) => {
+    const key = slugKey(label), saved = latest[key], local = wzLocal("org." + WZ.org.org_id + ".e." + key);
+    let ans = local ? local.answer : saved ? saved.answer : "";
+    // Pré-remplissage avec l'adresse et le téléphone de l'étape 1
+    if (!saved && !local && key.startsWith("adresse") && s1.address) { ans = s1.address; fresh.push(key); }
+    if (!saved && !local && key.startsWith("contacts") && s1.phone) { ans = t("Accueil : {0}", s1.phone); fresh.push(key); }
+    wzTopic(label, q, ans);
+    if (local) fresh.push(key);
+  });
+  // Thèmes ajoutés par le partenaire
+  Object.entries(latest).forEach(([k, v]) => { if (!$("w-entries").querySelector('[data-key="' + k + '"]')) wzTopic(k.replace(/-/g, " "), v.question, v.answer); });
+  fresh.forEach(k => { const ta = $("w-entries").querySelector('[data-key="' + k + '"] textarea'); if (ta) ta.dispatchEvent(new Event("input")); });
+  wzCount();
+}
+
+// Navigation entre les étapes
+function wzShow(step) {
+  WZ.step = step; say("wz-msg", "");
+  document.querySelectorAll("#v-setup .wz").forEach(d => d.hidden = +d.dataset.step !== step);
+  document.querySelectorAll("#wz-steps li").forEach(li => { const s = +li.dataset.s; li.className = s === step ? "cur" : s < step ? "done" : ""; });
+  $("wz-prev").hidden = step === 1;
+  $("wz-next").hidden = step === 4;
+  $("wz-next").textContent = step === 3 ? t("Voir mon code QR") : t("Continuer");
+  $("wz-prev").hidden = step === 1 || (step === 4 && WZ.done);
+  if (step === 4) wzSummary();
+  window.scrollTo(0, 0);
+}
+$("wz-steps").addEventListener("click", (ev) => { const li = ev.target.closest("li.done"); if (li) wzShow(+li.dataset.s); });
+$("wz-prev").onclick = () => wzShow(Math.max(1, WZ.step - 1));
+$("setup-back").onclick = () => { if (history.state && history.state.v === "org") history.back(); else goHome(); };
+$("wz-next").onclick = async () => {
+  const btn = $("wz-next"); btn.disabled = true;
+  try { await wzNext(); } catch (e) { say("wz-msg", errText(e)); } finally { btn.disabled = false; }
+};
+async function wzNext() {
+  say("wz-msg", "");
+  if (WZ.step === 1) {
+    const v = wzStep1Values();
+    if (v.name.length < 2) return say("wz-msg", t("Indiquez le nom de votre organisation."));
+    if (v.address.length < 10) return say("wz-msg", t("Indiquez l'adresse complète : ville, quartier et un repère connu."));
+    if (!phoneOk(v.phone)) return say("wz-msg", t("Indiquez le numéro de téléphone de l'accueil (8 à 15 chiffres)."));
+    let cc = v.country, cur;
+    if (cc === "OTHER") { cc = v.cc; cur = v.cur; } else cur = (COUNTRIES.find(c => c[0] === cc) || [])[2];
+    if (!/^[A-Z]{2}$/.test(cc || "") || !/^[A-Z]{3}$/.test(cur || "")) return say("wz-msg", t("Indiquez un code pays de 2 lettres et une monnaie de 3 lettres."));
+    if (!WZ.org) {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      const id = await rpcOrThrow("create_organization", { p_name: v.name, p_kind: v.kind, p_country: cc, p_currency: cur, p_locale: window.KM ? KM.lang : "fr", p_timezone: tz });
+      await rpcOrThrow("set_org_profile", { p_org: id, p_name: v.name, p_address: v.address, p_phone: v.phone });
+      wzLocal("new", null);
+      WZ.org = { org_id: id, name: v.name, kind: v.kind, country: cc, currency: cur, roles: ["owner", "validator"], status: "pending_payment" };
+      $("w-kind").disabled = $("w-country").disabled = true;
+    } else {
+      wzStep1Changed(); if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
+    }
+    WZ.org.address = v.address; WZ.org.contact_phone = v.phone; WZ.org.name = v.name;
+    if (!$("w-pub").value.trim()) $("w-pub").value = v.name;
+    if (!$("w-welcome").value.trim()) $("w-welcome").value = t("Bienvenue chez {0} ! Posez vos questions pratiques : horaires, services, tarifs, contacts… Je vous réponds jour et nuit.", v.name);
+    wzStep2Changed();
+    return wzShow(2);
+  }
+  if (WZ.step === 2) {
+    if ($("w-pub").value.trim().length < 2) return say("wz-msg", t("Indiquez le nom affiché aux visiteurs."));
+    wzStep2Changed();
+    if (!(await wzFlush()) || !WZ.ctx) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
+    await wzLoadEntries();
+    return wzShow(3);
+  }
+  if (WZ.step === 3) {
+    if (wzCount() < 3) return say("wz-msg", t("Remplissez au moins 3 informations pour que l'assistant puisse répondre à vos visiteurs."));
+    if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
+    return wzShow(4);
+  }
+}
+function wzSummary() {
+  const n = wzCount();
+  $("w-summary").replaceChildren(
+    el("p", {}, el("b", { textContent: $("w-pub").value.trim() || WZ.org.name })),
+    el("p", { className: "small muted", textContent: (WZ.org.address || "") + " · " + (WZ.org.contact_phone || "") }),
+    el("p", { className: "small", textContent: t("{0} informations seront publiées. Vous pourrez les modifier à tout moment.", n) }));
+  $("w-generate").hidden = WZ.done; $("w-result").hidden = !WZ.done;
+  if (WZ.done) $("wz-prev").hidden = true;
+}
+
+// Étape 4 : publication, code QR et mois offert
+const TRIAL_REFUSED = {
+  account: "Ce compte a déjà bénéficié du mois offert.",
+  address: "Cette adresse a déjà bénéficié du mois offert.",
+  name: "Une organisation de même nom a déjà bénéficié du mois offert.",
+  name_and_address: "Une organisation très proche a déjà bénéficié du mois offert.",
+  ip: "Le mois offert a déjà été utilisé plusieurs fois depuis cette connexion Internet.",
+  address_required: "Indiquez l'adresse complète de l'organisation."
+};
+$("w-generate").onclick = async () => {
+  const btn = $("w-generate"); btn.disabled = true; say("wz-msg", "");
+  try {
+    if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
+    const r = await rpcOrThrow("complete_setup", { p_org: WZ.org.org_id });
+    WZ.done = true; WZ.slug = r.slug;
+    drawQr($("w-canvas"), r.slug, $("w-pub").value.trim() || WZ.org.name);
+    $("w-open").href = VISITOR_URL + r.slug;
+    const tr = r.trial || {};
+    let box;
+    if (tr.granted) box = el("div", { className: "msg ok" }, el("b", { textContent: t("Votre page est en ligne !") }), el("div", { textContent: t("Votre mois offert est actif jusqu'au {0}. Vous recevrez un rappel par e-mail 5 jours avant la fin.", fmtDay(r.trial_ends_at)) }));
+    else if (r.live) box = el("div", { className: "msg ok" }, el("b", { textContent: t("Votre page est en ligne !") }));
+    else box = el("div", { className: "msg info" },
+      el("b", { textContent: t("Votre code QR est prêt.") }),
+      el("div", { textContent: t(TRIAL_REFUSED[tr.reason] || "Le mois offert n'est pas disponible pour cette organisation.") + " " +
+        (IN_APP ? t("Votre page sera en ligne dès l'activation de votre abonnement.") : t("Votre page sera en ligne dès le paiement de votre abonnement, depuis votre espace.")) }),
+      el("div", { className: "small", textContent: t("Une erreur ? Écrivez à knowmi.contact@gmail.com.") }));
+    if (!tr.granted && !r.live && !IN_APP) {
+      const pay = el("button", { className: "btn", type: "button", textContent: t("Choisir ma formule") });
+      pay.onclick = async () => { const o = WZ.org; WZ.org = null; await refreshAfterSetup(o); const c = $("pay-card"); if (c && !c.hidden) c.scrollIntoView({ behavior: "smooth", block: "start" }); };
+      box.append(pay);
+    }
+    $("w-trial").replaceChildren(box);
+    wzSummary();
+    TRIAL_OK = false;
+  } catch (e) { say("wz-msg", errText(e)); }
+  finally { btn.disabled = false; }
+};
+$("w-save-img").onclick = async () => {
+  const btn = $("w-save-img"), name = "QR-" + WZ.slug + ".png", dataUrl = $("w-canvas").toDataURL("image/png");
+  say("w-share-msg", "");
+  if (IN_APP) {   // Feuille de partage du téléphone : galerie, WhatsApp, Gmail, Drive…
+    bridgeBtn = btn;
+    if (toApp({ type: "saveImage", name, dataUrl })) return;
+    return say("w-share-msg", t("Partage indisponible : faites une capture d'écran du code QR."));
+  }
+  try {
+    const blob = await (await fetch(dataUrl)).blob(), file = new File([blob], name, { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  const a = el("a", { href: dataUrl, download: name }); document.body.append(a); a.click(); a.remove();
+  say("w-share-msg", t("Image téléchargée."), "ok");
+};
+$("w-mail").onclick = async () => {
+  const btn = $("w-mail"); btn.disabled = true; say("w-share-msg", t("Envoi en cours…"), "info");
+  try {
+    const { data, error } = await sb.functions.invoke("send-qr", { body: { slug: WZ.slug, png: $("w-canvas").toDataURL("image/png"), lang: window.KM ? KM.lang : "fr" } });
+    if (error || !data || data.status !== "sent") {
+      let m = ""; try { m = error && error.context ? ((await error.context.json()).message || "") : ""; } catch { /* réponse illisible */ }
+      return say("w-share-msg", m || t("L'e-mail n'a pas pu partir. Réessayez dans un instant."));
+    }
+    say("w-share-msg", t("Code QR envoyé à {0}. Regardez aussi dans les courriers indésirables.", data.email), "ok");
+  } finally { btn.disabled = false; }
+};
+$("w-copy").onclick = async () => {
+  try { await copyText(VISITOR_URL + WZ.slug); say("w-share-msg", t("Lien copié ✓"), "ok"); }
+  catch { say("w-share-msg", VISITOR_URL + WZ.slug, "info"); }
+};
+$("w-done").onclick = () => { const o = WZ.org; WZ.org = null; refreshAfterSetup(o); };
+async function refreshAfterSetup(o) {
+  const { data } = await sb.rpc("my_organizations");
+  const fresh = (data || []).find(x => x.org_id === o.org_id);
+  if (fresh) openOrg(fresh); else goHome();
+}
+
+// Ouvrir l'assistant : nouvelle inscription, ou reprise d'une organisation inachevée
+async function openSetup(o) {
+  Object.assign(WZ, { org: null, ctx: null, step: 1, timers: {}, jobs: {}, inflight: 0, failed: false, saved: false, done: false, slug: null });
+  ["w-name", "w-address", "w-phone", "w-cc", "w-cur", "w-pub", "w-welcome"].forEach(id => $(id).value = "");
+  $("w-kind").disabled = $("w-country").disabled = false; $("w-other").hidden = true;
+  $("w-entries").replaceChildren(); $("w-trial").replaceChildren(); say("w-share-msg", ""); say("wz-msg", "");
+  show("v-setup");
+  if (!history.state || history.state.v !== "org") history.pushState({ v: "org" }, "", PAGE + "#org");
+  if (!o) {
+    const d = wzLocal("new");
+    if (d) { $("w-name").value = d.name || ""; $("w-kind").value = d.kind || "health"; $("w-country").value = d.country || "BJ";
+      $("w-cc").value = d.cc || ""; $("w-cur").value = d.cur || ""; $("w-address").value = d.address || ""; $("w-phone").value = d.phone || "";
+      $("w-other").hidden = $("w-country").value !== "OTHER"; }
+    wzState(); return wzShow(1);
+  }
+  current = o;
+  const { data: org } = await sb.from("organizations").select("name, kind, country, currency, address, contact_phone, status").eq("id", o.org_id).maybeSingle();
+  WZ.org = { ...o, ...(org || {}) };
+  const s1 = wzLocal("org." + o.org_id + ".s1");
+  $("w-name").value = (s1 && s1.name) || WZ.org.name || ""; $("w-kind").value = WZ.org.kind; $("w-country").value = COUNTRIES.some(c => c[0] === WZ.org.country) ? WZ.org.country : "OTHER";
+  if ($("w-country").value === "OTHER") { $("w-other").hidden = false; $("w-cc").value = WZ.org.country; $("w-cur").value = WZ.org.currency; }
+  $("w-kind").disabled = $("w-country").disabled = true;
+  $("w-address").value = (s1 && s1.address) || WZ.org.address || ""; $("w-phone").value = (s1 && s1.phone) || WZ.org.contact_phone || "";
+  if (s1) wzStep1Changed();
+  const { data: cx } = await sb.from("contexts").select("id, public_name, welcome").eq("org_id", o.org_id).order("created_at").limit(1);
+  WZ.ctx = cx && cx[0] ? { id: cx[0].id } : null;
+  const s2 = wzLocal("org." + o.org_id + ".s2");
+  $("w-pub").value = (s2 && s2.public_name) || (cx && cx[0] && cx[0].public_name) || WZ.org.name;
+  $("w-welcome").value = (s2 && s2.welcome && s2.welcome.fr) || (cx && cx[0] && cx[0].welcome && cx[0].welcome.fr) || t("Bienvenue chez {0} ! Posez vos questions pratiques : horaires, services, tarifs, contacts… Je vous réponds jour et nuit.", WZ.org.name);
+  if (s2) wzStep2Changed();
+  wzState();
+  // Reprise à la première étape incomplète
+  if ($("w-address").value.trim().length < 10 || !phoneOk($("w-phone").value)) return wzShow(1);
+  if (!WZ.ctx) { wzStep2Changed(); return wzShow(2); }
+  await wzLoadEntries();
+  return wzShow(wzCount() >= 3 ? 4 : 3);
+}
+$("start-setup").onclick = () => openSetup(null);
+function refreshResume() {
+  const d = wzLocal("new");
+  $("resume-setup").hidden = !(d && d.name);
+  if (d && d.name) $("resume-setup").textContent = t("Inscription en cours : « {0} ». Touchez le bouton pour la reprendre.", d.name);
 }
 
 // ---------- Abonnement et paiement ----------
@@ -656,7 +1110,7 @@ async function loadSubscription() {
         go.disabled = true;
         const { data, error } = await sb.rpc("start_trial", { p_org: current.org_id });
         if (error) { go.disabled = false; return say("trial-msg", errText(error)); }
-        if (!data || !data.ok) { go.remove(); return say("trial-msg", t("Le mois offert a déjà été utilisé par ce compte.")); }
+        if (!data || !data.ok) { go.remove(); return say("trial-msg", t(TRIAL_REFUSED[data && data.reason] || "Le mois offert n'est pas disponible pour cette organisation."), "info"); }
         say("trial-msg", t("Mois offert activé jusqu'au {0}. Votre page peut être mise en ligne dès maintenant.", fmtDay(data.trial_ends_at)), "ok");
         TRIAL_OK = false; refreshOrg();
       };
