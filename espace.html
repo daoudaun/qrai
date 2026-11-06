@@ -117,6 +117,137 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
 .w-qr{display:flex;justify-content:center;margin:14px 0} .w-qr canvas{width:min(280px,100%);height:auto;border-radius:12px;border:1px solid var(--line);background:#fff}
 .w-share{display:flex;flex-wrap:wrap;gap:8px} .w-share .btn{flex:1 1 150px;margin-top:0}
 .b-RECU{background:var(--warn-soft);color:var(--warn)} .b-EN_REVUE,.b-EN_COURS{background:var(--info-soft);color:var(--info)} .b-TRAITE{background:var(--good-soft);color:var(--good)} .b-ARCHIVE{background:var(--surface2);color:var(--muted);border:1px solid var(--line)} .b-ABUS{background:var(--bad-soft);color:var(--bad)}
+
+/* ================= Refonte 2026-11 : mouvement, confort tactile, parcours guidé ================= */
+:root{ --ease:cubic-bezier(.2,.8,.2,1); --ease-out:cubic-bezier(.16,1,.3,1); --spring:cubic-bezier(.34,1.56,.64,1); --t1:.16s; --t2:.28s; --t3:.5s; --r:16px }
+html{scroll-behavior:smooth}
+body{background:radial-gradient(1200px 600px at 100% -10%, color-mix(in srgb,var(--accent) 12%, transparent), transparent 60%),radial-gradient(900px 500px at -10% 0%, color-mix(in srgb,var(--coral) 8%, transparent), transparent 55%),var(--bg);background-attachment:fixed}
+header.top{position:sticky;top:0;z-index:20;margin:-20px -16px 22px;padding:14px 16px;background:color-mix(in srgb,var(--bg) 78%, transparent);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid transparent;transition:border-color var(--t2) var(--ease),box-shadow var(--t2) var(--ease)}
+header.top.scrolled{border-bottom-color:var(--line);box-shadow:0 8px 24px -20px rgba(10,50,45,.5)}
+.card{border-radius:var(--r);padding:20px;animation:rise var(--t3) var(--ease-out) both}
+section:not([hidden]) > .card:nth-of-type(2), #t-mine > .card:nth-of-type(2){animation-delay:.05s}
+section:not([hidden]) > .card:nth-of-type(3), #t-mine > .card:nth-of-type(3){animation-delay:.1s}
+section:not([hidden]) > .card:nth-of-type(4), #t-mine > .card:nth-of-type(4){animation-delay:.15s}
+@keyframes rise{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes slideL{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes slideR{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes shimmer{from{background-position:-200% 0}to{background-position:200% 0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%, transparent)}100%{box-shadow:0 0 0 12px transparent}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.view-in{animation:fade var(--t2) var(--ease) both}
+/* Boutons : grande cible tactile, retour visuel immédiat */
+.btn{min-height:48px;padding:12px 18px;border-radius:12px;font-size:15px;cursor:pointer;position:relative;transition:transform var(--t1) var(--ease),box-shadow var(--t2) var(--ease),background-color var(--t2) var(--ease),border-color var(--t2) var(--ease),opacity var(--t2)}
+.btn:not(.ghost):not(.danger){box-shadow:0 8px 20px -12px color-mix(in srgb,var(--accent) 80%, transparent)}
+@media (hover:hover){.btn:hover{transform:translateY(-1px)} .btn:not(.ghost):not(.danger):hover{box-shadow:0 12px 26px -12px color-mix(in srgb,var(--accent) 90%, transparent)} .btn.ghost:hover{border-color:var(--accent);color:var(--accent)}}
+.btn:active{transform:scale(.97)}
+.btn.small{min-height:36px;padding:7px 12px;border-radius:10px}
+.btn[disabled]{cursor:not-allowed}
+.btn.loading{color:transparent!important;pointer-events:none}
+.btn.loading::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;border:2.5px solid currentColor;border-color:var(--accent-ink) var(--accent-ink) transparent transparent;animation:spin .7s linear infinite}
+.btn.ghost.loading::after{border-color:var(--accent) var(--accent) transparent transparent}
+.back{min-height:40px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;transition:gap var(--t2) var(--ease)} .back:hover{gap:10px}
+/* Champs : 16 px pour éviter le zoom automatique sur téléphone */
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=password],select,textarea{font-size:16px;min-height:48px;border-radius:12px;transition:border-color var(--t2) var(--ease),box-shadow var(--t2) var(--ease),background-color var(--t2)}
+input[type=url]{width:100%;padding:11px 12px;border:1px solid var(--line);background:var(--surface2)}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 18%, transparent);background:var(--surface)}
+.code-in{font-size:26px!important;letter-spacing:.35em;min-height:60px}
+.msg{animation:rise var(--t2) var(--ease-out) both;border-radius:12px}
+.org{min-height:64px;transition:transform var(--t1) var(--ease),border-color var(--t2),box-shadow var(--t2)}
+@media (hover:hover){.org:hover{transform:translateY(-2px);box-shadow:var(--shadow)}}
+.org:active{transform:scale(.99)}
+/* Squelettes de chargement */
+.skel{height:64px;border-radius:12px;margin-top:8px;background:linear-gradient(90deg,var(--surface2) 25%,color-mix(in srgb,var(--line) 70%, var(--surface2)) 37%,var(--surface2) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+/* Accueil : bandeau de bienvenue */
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 92%, #000) 0%,var(--accent) 55%,color-mix(in srgb,var(--accent) 70%, var(--coral)) 130%);color:#fff;border:0}
+.hero h2{font-size:24px;color:#fff;margin-bottom:6px} .hero p{color:rgba(255,255,255,.88)}
+.hero .btn{background:#fff;color:var(--accent);box-shadow:0 12px 28px -14px rgba(0,0,0,.45)}
+.hero .gift{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);padding:6px 12px;border-radius:999px;font-weight:700;font-size:13px;margin-bottom:12px}
+.hero .orb{position:absolute;right:-50px;top:-50px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 65%);animation:float 6s ease-in-out infinite;pointer-events:none}
+.hero ol.steps li::before{background:rgba(255,255,255,.2);color:#fff}
+/* Assistant : barre de progression animée */
+.wz-bar{height:6px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);overflow:hidden;margin:2px 0 12px}
+.wz-bar i{display:block;height:100%;width:25%;border-radius:999px;background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 60%, var(--coral)));transition:width var(--t3) var(--ease-out)}
+.wz-steps li span{transition:background-color var(--t2) var(--ease),color var(--t2),transform var(--t2) var(--spring)}
+.wz-steps li.cur span{transform:scale(1.12);box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 18%, transparent)}
+.wz.go-next{animation:slideL var(--t2) var(--ease-out) both} .wz.go-prev{animation:slideR var(--t2) var(--ease-out) both}
+.wz-nav{position:sticky;bottom:0;z-index:5;margin:14px -20px -20px;padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 88%, transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);border-radius:0 0 var(--r) var(--r)}
+.wz-nav .btn{margin-top:0}
+/* Trois façons de remplir ses informations */
+.methods{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin:12px 0 4px}
+.method{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);transition:transform var(--t1) var(--ease),border-color var(--t2),background-color var(--t2),box-shadow var(--t2)}
+.method:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (hover:hover){.method:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--accent) 60%, var(--line))}}
+.method:active{transform:scale(.98)}
+.method[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 10px 24px -16px var(--accent)}
+.method .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface);color:var(--accent);border:1px solid var(--line)}
+.method[aria-pressed="true"] .ic{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.method b{font-size:15px} .method span{font-size:13px;color:var(--muted);line-height:1.4}
+.method .tag{align-self:flex-start;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--good-soft);color:var(--good)}
+.pane{margin-top:12px;animation:rise var(--t2) var(--ease-out) both}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:26px 16px;border:2px dashed color-mix(in srgb,var(--accent) 45%, var(--line));border-radius:16px;background:var(--surface2);cursor:pointer;transition:border-color var(--t2),background-color var(--t2),transform var(--t1)}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)} .drop.over{transform:scale(1.01)}
+.drop svg{color:var(--accent);animation:float 3s ease-in-out infinite}
+.drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.file-chip{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);margin-top:10px;animation:rise var(--t2) var(--ease-out) both}
+.file-chip .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.dl{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--info-soft);color:var(--info);text-decoration:none;font-weight:600;font-size:14px;margin-bottom:12px;transition:transform var(--t1) var(--ease)}
+.dl:hover{transform:translateX(3px)}
+.url-row{display:flex;gap:8px;align-items:center;margin-top:8px;animation:rise var(--t2) var(--ease-out) both} .url-row input{flex:1}
+/* Lecture en cours : étapes animées */
+.reading{margin-top:14px;padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--surface)}
+.reading .bar{height:6px;border-radius:999px;background:linear-gradient(90deg,var(--accent-soft) 25%,var(--accent) 50%,var(--accent-soft) 75%);background-size:300% 100%;animation:shimmer 1.6s linear infinite;margin-bottom:12px}
+.reading ol{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.reading li{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--muted);transition:color var(--t2)}
+.reading li i{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex:0 0 auto;transition:all var(--t2) var(--ease)}
+.reading li.on{color:var(--ink);font-weight:600} .reading li.on i{border-color:var(--accent) transparent var(--accent) var(--accent);animation:spin .9s linear infinite}
+.reading li.ok{color:var(--good)} .reading li.ok i{background:var(--good);border-color:var(--good)}
+/* Informations : thèmes remplis, importés */
+.w-topic{transition:border-color var(--t2) var(--ease),background-color var(--t2),box-shadow var(--t2)}
+.w-topic .t{display:flex;align-items:center;gap:8px}
+.w-topic .t::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--line);transition:background-color var(--t2),transform var(--t2) var(--spring)}
+.w-topic.filled .t::before{background:var(--accent);transform:scale(1.25)}
+.w-topic.imported{animation:rise var(--t2) var(--ease-out) both,flash .9s var(--ease) .2s}
+.w-topic .imp{font-size:11px;font-weight:700;color:var(--info);background:var(--info-soft);padding:1px 8px;border-radius:999px;margin-left:auto}
+.meter{display:flex;align-items:center;gap:10px;margin:4px 0 2px}
+.meter .track{flex:1;height:8px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);overflow:hidden}
+.meter .track i{display:block;height:100%;width:0;background:var(--accent);border-radius:999px;transition:width var(--t3) var(--ease-out),background-color var(--t2)}
+.meter.ok .track i{background:var(--good)}
+/* Aperçu de la page visiteur */
+.preview{margin:14px auto 0;max-width:320px;border-radius:30px;padding:10px;background:#0b1416;box-shadow:0 30px 60px -30px rgba(0,0,0,.6);animation:rise var(--t3) var(--ease-out) both}
+.preview .scr{border-radius:22px;overflow:hidden;background:#eef4f2;color:#0d1c1f;min-height:360px;display:flex;flex-direction:column}
+.preview .hd{background:#0b8a7c;color:#fff;padding:18px 16px 16px}
+.preview .hd b{display:block;font:800 17px var(--f-display);overflow-wrap:anywhere}
+.preview .hd small{opacity:.85;font-size:12px}
+.preview .bd{padding:14px;display:grid;gap:10px;font-size:13px}
+.preview .bubble{background:#fff;border-radius:14px 14px 14px 4px;padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 6px 14px -10px rgba(0,0,0,.4)}
+.preview .ch{display:flex;flex-wrap:wrap;gap:6px} .preview .ch span{background:#d5efea;color:#0b8a7c;border-radius:999px;padding:4px 10px;font-weight:600;font-size:12px}
+.preview .in{margin:auto 14px 14px;background:#fff;border-radius:999px;padding:10px 14px;color:#8a9a9c;font-size:12px}
+/* Code QR : révélation */
+.w-qr{position:relative}
+.w-qr canvas{animation:pop .7s var(--ease-out) both}
+.burst{position:absolute;inset:0;pointer-events:none;overflow:visible}
+.burst i{position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:2px;opacity:0;animation:confetti 1.1s var(--ease-out) forwards}
+@keyframes confetti{0%{opacity:1;transform:translate(-50%,-50%) rotate(0)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r))}}
+.done-mark{display:flex;justify-content:center;margin:6px 0 2px}
+.done-mark svg circle{stroke-dasharray:160;stroke-dashoffset:160;animation:draw .6s var(--ease) forwards}
+.done-mark svg path{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .4s var(--ease) .45s forwards}
+/* Mois offert : jauge des jours restants */
+.trial{padding:14px;border-radius:14px;background:var(--good-soft);color:var(--good)}
+.trial .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;font-weight:700}
+.trial .days{font:800 28px var(--f-display);line-height:1}
+.trial .track{height:8px;border-radius:999px;background:color-mix(in srgb,var(--good) 18%, transparent);margin:10px 0 8px;overflow:hidden}
+.trial .track i{display:block;height:100%;border-radius:999px;background:var(--good);width:0;transition:width 1s var(--ease-out)}
+.trial p{margin:0;font-size:13px;color:var(--ink)}
+.trial.soon{background:var(--warn-soft);color:var(--warn)} .trial.soon .track{background:color-mix(in srgb,var(--warn) 18%, transparent)} .trial.soon .track i{background:var(--warn)}
+.w-share .btn:first-child{flex-basis:100%}
+.pay-head{padding:14px;border-radius:14px;background:var(--info-soft);color:var(--info);margin-bottom:6px}
+.pay-head b{display:block;font-size:16px;margin-bottom:2px}
+.resend{background:none;border:0;color:var(--accent);font-weight:700;padding:8px 0;cursor:pointer} .resend[disabled]{color:var(--muted);cursor:default}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -151,6 +282,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
           <button class="btn" type="submit">Valider</button>
           <button class="btn ghost" type="button" id="change-email">Changer d'adresse</button>
         </div>
+        <button class="resend" type="button" id="resend" disabled>Renvoyer le code</button>
       </form>
       <details id="pass-box" style="margin-top:14px"><summary class="small">Connexion avec mot de passe (compte de démonstration)</summary>
         <form id="f-pass" style="margin-top:8px">
@@ -178,18 +310,19 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         <ul class="list" id="received"></ul>
         <div id="received-msg"></div>
       </div>
-      <div class="card">
+      <div class="card" id="orgs-card">
         <h2>Mes organisations</h2>
-        <div id="orgs"></div>
+        <div id="orgs"><div class="skel"></div><div class="skel" style="opacity:.6"></div></div>
       </div>
-      <div class="card">
+      <div class="card hero" id="setup-card">
+        <span class="orb" aria-hidden="true"></span>
+        <span class="gift" id="trial-offer" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg><span>Premier mois offert · sans moyen de paiement</span></span>
         <h2>Inscrire une organisation</h2>
-        <p class="muted small">Entreprise, établissement de santé, institution, ONG ou professionnel. Vous en devenez le propriétaire.</p>
-        <p class="msg ok" id="trial-offer" data-i18n-html="trial-offer2" hidden><b>Premier mois offert</b> : 30 jours gratuits, sans moyen de paiement. Ils démarrent dès que votre code QR est généré.</p>
+        <p class="small">Entreprise, établissement de santé, institution, ONG ou professionnel. En quelques minutes, vos visiteurs obtiennent vos réponses par un simple code QR.</p>
         <ol class="steps small" style="margin-bottom:6px">
           <li>Votre organisation (adresse, téléphone)</li>
+          <li>Vos informations : fiche à importer, site internet ou saisie</li>
           <li>Votre page d'accueil</li>
-          <li>Vos informations</li>
           <li>Votre code QR, prêt à imprimer et à partager</li>
         </ol>
         <button class="btn" type="button" id="start-setup" style="width:100%">Inscrire mon organisation</button>
@@ -214,7 +347,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         </form>
         <div id="org-msg"></div>
       </div>
-      <div class="card">
+      <div class="card" id="join-card" hidden>
         <h2>J'ai reçu un code d'invitation</h2>
         <p class="muted small">Le code ne fonctionne qu'avec l'adresse e-mail à laquelle il a été destiné.</p>
         <form id="f-join" class="row">
@@ -272,10 +405,11 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
     <div class="card">
       <ol class="wz-steps" id="wz-steps">
         <li data-s="1"><span>1</span><b>Organisation</b></li>
-        <li data-s="2"><span>2</span><b>Page d'accueil</b></li>
-        <li data-s="3"><span>3</span><b>Informations</b></li>
+        <li data-s="2"><span>2</span><b>Informations</b></li>
+        <li data-s="3"><span>3</span><b>Page d'accueil</b></li>
         <li data-s="4"><span>4</span><b>Code QR</b></li>
       </ol>
+      <div class="wz-bar" aria-hidden="true"><i id="wz-fill"></i></div>
       <p class="wz-save small" id="wz-save" aria-live="polite"></p>
 
       <div class="wz" data-step="1">
@@ -304,32 +438,86 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
       </div>
 
       <div class="wz" data-step="2" hidden>
+        <h2>Vos informations</h2>
+        <p class="muted small">Ce sont les réponses que l'assistant donnera à vos visiteurs, <b>uniquement</b> avec ces informations. Choisissez la façon la plus simple pour vous : vous relirez tout avant la publication.</p>
+        <div class="methods" role="group" aria-label="Façon de remplir vos informations">
+          <button class="method" type="button" data-m="file" aria-pressed="false">
+            <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15l3-3 3 3"/></svg></span>
+            <span class="tag">Le plus rapide</span>
+            <b>Importer ma fiche</b><span>Fiche KnowMi remplie, brochure, PDF ou photo d'un document.</span>
+          </button>
+          <button class="method" type="button" data-m="url" aria-pressed="false">
+            <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></span>
+            <b>Mon site internet</b><span>Collez le lien de votre site : nous en lisons les pages utiles.</span>
+          </button>
+          <button class="method" type="button" data-m="manual" aria-pressed="false">
+            <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
+            <b>Je remplis moi-même</b><span>Répondez aux questions les plus fréquentes, thème par thème.</span>
+          </button>
+        </div>
+
+        <div class="pane" id="m-file" hidden>
+          <a class="dl" id="tpl-link" href="fiche-knowmi.docx" download>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            <span>Pas encore de fiche ? Téléchargez le modèle (Word), remplissez-le, puis importez-le ici.</span>
+          </a>
+          <label class="drop" id="drop" for="w-file">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 16l-4-4-4 4M12 12v9"/><path d="M20.4 18.4A5 5 0 0 0 18 9h-1.3A8 8 0 1 0 3 16.3"/></svg>
+            <b>Touchez pour choisir un fichier</b>
+            <span class="small muted">ou glissez-le ici · Word (.docx), PDF, photo (JPG, PNG) · 6 Mo maximum</span>
+            <input id="w-file" type="file" accept=".docx,.pdf,.jpg,.jpeg,.png,.webp,.txt,application/pdf,image/*,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          </label>
+          <div id="file-chip"></div>
+        </div>
+
+        <div class="pane" id="m-url" hidden>
+          <label for="w-url-0">Adresse de votre site internet</label>
+          <div id="url-list"><div class="url-row"><input id="w-url-0" type="url" inputmode="url" autocomplete="url" placeholder="Ex. www.cliniquelespalmiers.bj" maxlength="300"></div></div>
+          <button class="btn ghost small" type="button" id="url-add" style="margin-top:8px">+ Ajouter une autre page (contact, tarifs…)</button>
+          <button class="btn" type="button" id="url-go" style="width:100%">Lire mon site</button>
+          <p class="small muted" style="margin-top:8px">Nous lisons la page d'accueil et les pages utiles du même site (contact, horaires, services, tarifs). Rien n'est publié sans votre validation.</p>
+        </div>
+
+        <div class="reading" id="reading" hidden aria-live="polite">
+          <div class="bar"></div>
+          <ol><li data-r="1"><i></i><span>Lecture du document</span></li><li data-r="2"><i></i><span>Repérage des horaires, contacts, services et tarifs</span></li><li data-r="3"><i></i><span>Préparation de vos fiches</span></li></ol>
+        </div>
+
+        <div id="w-editor" hidden>
+          <div id="import-msg"></div>
+          <div class="meter" id="w-meter"><div class="track"><i id="w-meter-fill"></i></div><span class="small" id="w-count"></span></div>
+          <div id="w-entries"></div>
+          <details id="w-more" style="margin-top:12px"><summary class="small"><b>+ Ajouter une autre information</b></summary>
+            <label for="w-new-key">Thème</label><input id="w-new-key" type="text" maxlength="60" placeholder="Ex. Parking">
+            <label for="w-new-q">Question d'un visiteur</label><input id="w-new-q" type="text" maxlength="300" placeholder="Ex. Y a-t-il un parking ?">
+            <button class="btn ghost small" type="button" id="w-new-add" style="margin-top:10px">Ajouter</button>
+          </details>
+        </div>
+      </div>
+
+      <div class="wz" data-step="3" hidden>
         <h2>Votre page d'accueil</h2>
-        <p class="muted small">C'est ce que voit le visiteur après avoir scanné votre code QR.</p>
+        <p class="muted small">C'est ce que voit le visiteur après avoir scanné votre code QR. L'aperçu se met à jour pendant que vous écrivez.</p>
         <label for="w-pub">Nom affiché aux visiteurs</label>
         <input id="w-pub" type="text" maxlength="120">
         <label for="w-welcome">Message d'accueil</label>
         <textarea id="w-welcome" rows="4" maxlength="600"></textarea>
-      </div>
-
-      <div class="wz" data-step="3" hidden>
-        <h2>Vos informations</h2>
-        <p class="muted small">Répondez aux questions que vos visiteurs posent le plus souvent. L'assistant répondra <b>uniquement</b> avec ces informations. Remplissez-en au moins 3 ; laissez vide ce qui ne vous concerne pas.</p>
-        <p class="small" id="w-count"></p>
-        <div id="w-entries"></div>
-        <details id="w-more" style="margin-top:12px"><summary class="small"><b>+ Ajouter une autre information</b></summary>
-          <label for="w-new-key">Thème</label><input id="w-new-key" type="text" maxlength="60" placeholder="Ex. Parking">
-          <label for="w-new-q">Question d'un visiteur</label><input id="w-new-q" type="text" maxlength="300" placeholder="Ex. Y a-t-il un parking ?">
-          <button class="btn ghost small" type="button" id="w-new-add" style="margin-top:10px">Ajouter</button>
-        </details>
+        <div class="preview" aria-label="Aperçu de la page visiteur">
+          <div class="scr">
+            <div class="hd"><b id="pv-name" data-i18n-skip></b><small>✓ Informations validées par l'établissement</small></div>
+            <div class="bd"><div class="bubble" id="pv-welcome" data-i18n-skip></div><div class="ch" id="pv-chips" data-i18n-skip></div></div>
+            <div class="in">Posez votre question</div>
+          </div>
+        </div>
       </div>
 
       <div class="wz" data-step="4" hidden>
         <h2>Votre code QR</h2>
         <div id="w-summary"></div>
-        <button class="btn" type="button" id="w-generate">Générer mon code QR</button>
+        <button class="btn" type="button" id="w-generate" style="width:100%">Générer mon code QR</button>
         <div id="w-result" hidden>
-          <div class="w-qr"><canvas id="w-canvas"></canvas></div>
+          <div class="done-mark" aria-hidden="true"><svg width="56" height="56" viewBox="0 0 56 56" fill="none" stroke="var(--good)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><circle cx="28" cy="28" r="25"/><path d="M17 29l7 7 15-16"/></svg></div>
+          <div class="w-qr"><canvas id="w-canvas"></canvas><div class="burst" id="burst" aria-hidden="true"></div></div>
           <div id="w-trial"></div>
           <div class="w-share">
             <button class="btn" type="button" id="w-save-img">Enregistrer / partager l'image</button>
@@ -362,7 +550,7 @@ input[type=date]{padding:10px 12px;border:1px solid var(--line);border-radius:10
         <p class="small" style="margin:10px 0 4px"><b>Les étapes pour mettre votre organisation en ligne :</b></p>
         <ol class="steps small">
           <li><a href="#" data-goto="pub-card">Remplir la page publique</a> : nom affiché et message d'accueil.</li>
-          <li>Ajouter et publier vos fiches (horaires, tarifs, services…).</li>
+          <li>Ajouter et publier vos fiches (horaires, tarifs, services…), ou les importer depuis votre fiche ou votre site.</li>
           <li>Créer et imprimer votre code QR.</li>
           <li><a href="#" data-goto="invite-card">Inviter votre équipe</a> : la personne reçoit l'invitation par e-mail.</li>
         </ol>
@@ -522,11 +710,23 @@ const errText = (e) => {
   return t(m.charAt(0).toUpperCase() + m.slice(1));
 };
 async function busy(form, fn) {
-  const b = form.querySelector("button[type=submit]"); b.disabled = true;
-  try { await fn(); } finally { b.disabled = false; }
+  const b = form.querySelector("button[type=submit]"); b.disabled = true; b.classList.add("loading");
+  try { await fn(); } finally { b.disabled = false; b.classList.remove("loading"); }
 }
+// Bouton isolé : état de chargement pendant une action
+async function withLoading(btn, fn) {
+  btn.disabled = true; btn.classList.add("loading");
+  try { return await fn(); } finally { btn.disabled = false; btn.classList.remove("loading"); }
+}
+const REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Ombre sous l'en-tête dès que l'on fait défiler
+addEventListener("scroll", () => document.querySelector("header.top").classList.toggle("scrolled", scrollY > 8), { passive: true });
 const PAGE = location.pathname + location.search;
-function show(view) { ["v-login","v-home","v-org","v-setup"].forEach(v => $(v).hidden = v !== view); window.scrollTo(0, 0); }
+function show(view) {
+  const apply = () => { ["v-login","v-home","v-org","v-setup"].forEach(v => $(v).hidden = v !== view); window.scrollTo({ top: 0, behavior: "instant" });
+    const n = $(view); n.classList.remove("view-in"); void n.offsetWidth; n.classList.add("view-in"); };
+  if (document.startViewTransition && !REDUCED && $(view).hidden) document.startViewTransition(apply); else apply();
+}
 
 let me = null, current = null, isOperator = false;
 
@@ -541,8 +741,21 @@ $("f-email").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.t
   $("sent-to").textContent = (IN_APP ? t("Saisissez ci-dessous le code reçu par e-mail. ") : /^https:/.test(location.protocol) ? t("Ouvrez l'e-mail et cliquez simplement sur « Sign in » : vous reviendrez ici, connecté. ") : "") + t("E-mail envoyé à {0} (expéditeur Supabase, objet « Your sign-in link »). Regardez aussi dans les courriers indésirables.", pendingEmail);
   if (IN_APP) { $("code").placeholder = t("Code reçu par e-mail"); $("code").inputMode = "numeric"; $("code-help").hidden = true; }
   $("f-email").hidden = true; $("f-code").hidden = false; $("code").focus();
+  startResendTimer();
 }); });
 $("change-email").onclick = () => { $("f-code").hidden = true; $("f-email").hidden = false; say("login-msg", ""); };
+let resendTimer = null;
+function startResendTimer(sec = 60) {
+  const b = $("resend"); clearInterval(resendTimer); b.disabled = true;
+  const tick = () => { b.textContent = sec > 0 ? t("Renvoyer le code dans {0} s", sec) : t("Renvoyer le code"); if (sec-- <= 0) { clearInterval(resendTimer); b.disabled = false; } };
+  tick(); resendTimer = setInterval(tick, 1000);
+}
+$("resend").onclick = () => withLoading($("resend"), async () => {
+  const redirect = /^https:/.test(location.protocol) ? location.origin + location.pathname : undefined;
+  const { error } = await sb.auth.signInWithOtp({ email: pendingEmail, options: { shouldCreateUser: true, emailRedirectTo: redirect } });
+  if (error) return say("login-msg", errText(error));
+  say("login-msg", t("Nouvel e-mail envoyé à {0}.", pendingEmail), "ok"); startResendTimer();
+});
 $("f-code").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.target, async () => {
   const raw = $("code").value.trim();
   let res;
@@ -602,6 +815,7 @@ let TRIAL_OK = false;
 async function refreshTrialOffer() {
   const { data } = await sb.rpc("trial_available");
   TRIAL_OK = data === true; $("trial-offer").hidden = !TRIAL_OK;
+  refreshJoinCard(ORG_ROWS);
 }
 
 // ---------- Onglets ----------
@@ -653,15 +867,25 @@ async function loadReceived() {
   }));
 }
 
+// « Rejoindre par code » n'apparaît pas pendant la période de gratuité : le nouveau partenaire va droit
+// à l'inscription de son organisation. Les invitations envoyées par e-mail restent visibles (carte « Invitations reçues »).
+let ORG_ROWS = [];
+function inFreeMonth(r) { return r && r.trial_ends_at && new Date(r.trial_ends_at) > new Date() && (!r.paid_until || new Date(r.paid_until).getTime() === new Date(r.trial_ends_at).getTime()); }
+function refreshJoinCard(rows) {
+  ORG_ROWS = rows;
+  $("join-card").hidden = TRIAL_OK || !rows.length || rows.some(inFreeMonth);
+}
 async function loadOrgs() {
   loadReceived(); refreshResume();
   const { data, error } = await sb.rpc("my_organizations");
   const box = $("orgs");
   if (error) return box.replaceChildren(el("div", { className: "msg err", textContent: errText(error) }));
-  if (!data.length) return box.replaceChildren(el("p", { className: "muted", textContent: t("Aucune organisation pour l'instant. Inscrivez la vôtre ci-dessous, ou rejoignez une équipe avec un code d'invitation.") }));
+  $("orgs-card").hidden = !data.length;
+  if (!data.length) { box.replaceChildren(); refreshJoinCard([]); return; }
   // Organisations dont le parcours d'inscription n'est pas terminé (propriétaire uniquement)
-  const { data: rows } = await sb.from("organizations").select("id, setup_completed_at").in("id", data.map(o => o.org_id));
+  const { data: rows } = await sb.from("organizations").select("id, setup_completed_at, trial_ends_at, paid_until").in("id", data.map(o => o.org_id));
   const pending = new Set((rows || []).filter(r => !r.setup_completed_at).map(r => r.id));
+  refreshJoinCard(rows || []);
   box.replaceChildren(...data.map(o => {
     const todo = pending.has(o.org_id) && o.roles.includes("owner");
     const [label, cls] = todo ? [t("Inscription à terminer"), "b-pending"] : (STATUS[o.status] || [o.status, ""]);
@@ -702,7 +926,7 @@ $("f-join").addEventListener("submit", (ev) => { ev.preventDefault(); busy(ev.ta
 
 // ---------- Détail d'une organisation ----------
 // Le retour (bouton « Retour », touche retour du téléphone ou du navigateur) ramène à la liste des organisations
-function goHome() { if (!$("v-setup").hidden) wzFlush(); current = null; loadOrgs(); show("v-home"); }
+function goHome() { if (!$("v-setup").hidden) wzFlush(); current = null; loadOrgs(); refreshTrialOffer(); show("v-home"); }
 if (location.hash === "#org") history.replaceState(null, "", PAGE);
 $("back").onclick = () => { if (history.state && history.state.v === "org") history.back(); else goHome(); };
 window.addEventListener("popstate", () => { if (!$("v-org").hidden || !$("v-setup").hidden) goHome(); });
@@ -824,19 +1048,25 @@ const WZ_TOPICS = {
 // Même calcul que le serveur (save_draft_entry) pour retrouver les fiches déjà saisies
 const slugKey = (k) => k.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 function wzCount() {
-  const n = [...$("w-entries").querySelectorAll("textarea")].filter(a => a.value.trim()).length;
-  $("w-count").textContent = t("{0} information(s) remplie(s) · 3 au minimum", n);
+  const all = [...$("w-entries").querySelectorAll("textarea")], n = all.filter(a => a.value.trim()).length;
+  $("w-count").textContent = n >= 3 ? t("{0} information(s) remplie(s) ✓", n) : t("{0} information(s) remplie(s) · 3 au minimum", n);
   $("w-count").className = "small " + (n >= 3 ? "ok-text" : "");
+  $("w-meter").classList.toggle("ok", n >= 3);
+  $("w-meter-fill").style.width = Math.min(100, Math.round(n / Math.max(3, Math.min(all.length || 3, 8)) * 100)) + "%";
   return n;
 }
+function grow(ta) { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 420) + "px"; }
 function wzTopic(label, question, answer) {
   const key = slugKey(label);
-  if ($("w-entries").querySelector('[data-key="' + key + '"]')) return;
+  const existing = $("w-entries").querySelector('[data-key="' + key + '"] textarea');
+  if (existing) return existing;
   const ta = el("textarea", { rows: 2, maxLength: 20000, value: answer || "", placeholder: t("Votre réponse…") });
   const box = el("div", { className: "w-topic" + (answer ? " filled" : "") },
     el("div", { className: "t", textContent: t(label) }), el("div", { className: "q", textContent: t(question) }), ta);
   box.dataset.key = key;
-  ta.addEventListener("input", () => {
+  ta.addEventListener("input", (ev) => {
+    if (ev.isTrusted) delete box.dataset.prefill;
+    grow(ta);
     box.classList.toggle("filled", !!ta.value.trim()); wzCount();
     const answerNow = ta.value;
     wzLocal("org." + WZ.org.org_id + ".e." + key, { label, question, answer: answerNow });
@@ -868,30 +1098,37 @@ async function wzLoadEntries() {
   }
   const topics = WZ_TOPICS[WZ.org.kind] || WZ_TOPICS.default;
   const s1 = { address: WZ.org.address || "", phone: WZ.org.contact_phone || "" };
-  const fresh = [];
+  const fresh = [], prefilled = [];
   topics.forEach(([label, q]) => {
     const key = slugKey(label), saved = latest[key], local = wzLocal("org." + WZ.org.org_id + ".e." + key);
     let ans = local ? local.answer : saved ? saved.answer : "";
     // Pré-remplissage avec l'adresse et le téléphone de l'étape 1
-    if (!saved && !local && key.startsWith("adresse") && s1.address) { ans = s1.address; fresh.push(key); }
-    if (!saved && !local && key.startsWith("contacts") && s1.phone) { ans = t("Accueil : {0}", s1.phone); fresh.push(key); }
+    if (!saved && !local && key.startsWith("adresse") && s1.address) { ans = s1.address; fresh.push(key); prefilled.push(key); }
+    if (!saved && !local && key.startsWith("contacts") && s1.phone) { ans = t("Accueil : {0}", s1.phone); fresh.push(key); prefilled.push(key); }
     wzTopic(label, q, ans);
     if (local) fresh.push(key);
   });
   // Thèmes ajoutés par le partenaire
   Object.entries(latest).forEach(([k, v]) => { if (!$("w-entries").querySelector('[data-key="' + k + '"]')) wzTopic(k.replace(/-/g, " "), v.question, v.answer); });
   fresh.forEach(k => { const ta = $("w-entries").querySelector('[data-key="' + k + '"] textarea'); if (ta) ta.dispatchEvent(new Event("input")); });
+  prefilled.forEach(k => { const b = $("w-entries").querySelector('[data-key="' + k + '"]'); if (b) b.dataset.prefill = "1"; });
+  $("w-entries").querySelectorAll("textarea").forEach(grow);
   wzCount();
 }
 
 // Navigation entre les étapes
 function wzShow(step) {
+  const dir = step >= WZ.step ? "go-next" : "go-prev";
   WZ.step = step; say("wz-msg", "");
-  document.querySelectorAll("#v-setup .wz").forEach(d => d.hidden = +d.dataset.step !== step);
+  document.querySelectorAll("#v-setup .wz").forEach(d => { d.hidden = +d.dataset.step !== step; d.classList.remove("go-next", "go-prev"); if (!d.hidden) { void d.offsetWidth; d.classList.add(dir); } });
+  $("wz-fill").style.width = (step * 25) + "%";
+  if (step === 2) wzMethodInit();
+  if (step === 3) wzPreview();
   document.querySelectorAll("#wz-steps li").forEach(li => { const s = +li.dataset.s; li.className = s === step ? "cur" : s < step ? "done" : ""; });
   $("wz-prev").hidden = step === 1;
   $("wz-next").hidden = step === 4;
   $("wz-next").textContent = step === 3 ? t("Voir mon code QR") : t("Continuer");
+  $("wz-next").hidden = step === 4 || (step === 2 && $("w-editor").hidden);
   $("wz-prev").hidden = step === 1 || (step === 4 && WZ.done);
   if (step === 4) wzSummary();
   window.scrollTo(0, 0);
@@ -900,8 +1137,8 @@ $("wz-steps").addEventListener("click", (ev) => { const li = ev.target.closest("
 $("wz-prev").onclick = () => wzShow(Math.max(1, WZ.step - 1));
 $("setup-back").onclick = () => { if (history.state && history.state.v === "org") history.back(); else goHome(); };
 $("wz-next").onclick = async () => {
-  const btn = $("wz-next"); btn.disabled = true;
-  try { await wzNext(); } catch (e) { say("wz-msg", errText(e)); } finally { btn.disabled = false; }
+  const btn = $("wz-next"); btn.disabled = true; btn.classList.add("loading");
+  try { await wzNext(); } catch (e) { say("wz-msg", errText(e)); } finally { btn.disabled = false; btn.classList.remove("loading"); }
 };
 async function wzNext() {
   say("wz-msg", "");
@@ -926,22 +1163,161 @@ async function wzNext() {
     WZ.org.address = v.address; WZ.org.contact_phone = v.phone; WZ.org.name = v.name;
     if (!$("w-pub").value.trim()) $("w-pub").value = v.name;
     if (!$("w-welcome").value.trim()) $("w-welcome").value = t("Bienvenue chez {0} ! Posez vos questions pratiques : horaires, services, tarifs, contacts… Je vous réponds jour et nuit.", v.name);
-    wzStep2Changed();
-    return wzShow(2);
-  }
-  if (WZ.step === 2) {
-    if ($("w-pub").value.trim().length < 2) return say("wz-msg", t("Indiquez le nom affiché aux visiteurs."));
+    // La page publique est créée tout de suite : les informations pourront y être enregistrées
     wzStep2Changed();
     if (!(await wzFlush()) || !WZ.ctx) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
     await wzLoadEntries();
+    return wzShow(2);
+  }
+  if (WZ.step === 2) {
+    if (wzCount() < 3) return say("wz-msg", t("Remplissez au moins 3 informations pour que l'assistant puisse répondre à vos visiteurs."));
+    if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
     return wzShow(3);
   }
   if (WZ.step === 3) {
-    if (wzCount() < 3) return say("wz-msg", t("Remplissez au moins 3 informations pour que l'assistant puisse répondre à vos visiteurs."));
+    if ($("w-pub").value.trim().length < 2) return say("wz-msg", t("Indiquez le nom affiché aux visiteurs."));
+    wzStep2Changed();
     if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
     return wzShow(4);
   }
 }
+
+// ---------- Étape 2 : trois façons de remplir ses informations ----------
+function wzMethodInit() {
+  if (wzCount() >= 3 && !WZ.method) { WZ.imported = true; wzMethod("manual", true); }
+  $("tpl-link").hidden = WZ.org && WZ.org.kind !== "health";
+}
+function wzMethod(m, quiet) {
+  WZ.method = m;
+  document.querySelectorAll(".method").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m));
+  $("m-file").hidden = m !== "file"; $("m-url").hidden = m !== "url";
+  if (m === "manual") wzOpenEditor();
+  else if (!WZ.imported) { $("w-editor").hidden = true; $("wz-next").hidden = true; }
+  else if (!quiet) (m === "url" ? $("w-url-0") : $("drop")).scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
+  if (m === "url" && !quiet) setTimeout(() => $("w-url-0").focus({ preventScroll: true }), 250);
+}
+function wzOpenEditor() {
+  const ed = $("w-editor"), first = ed.hidden; ed.hidden = false;
+  if (first) { ed.classList.add("pane"); wzCount(); }
+  requestAnimationFrame(() => ed.querySelectorAll("textarea").forEach(grow));
+  if (WZ.step === 2) $("wz-next").hidden = false;
+}
+document.querySelectorAll(".method").forEach(b => b.onclick = () => wzMethod(b.dataset.m));
+
+// Fichier : sélection, glisser-déposer, photo réduite avant l'envoi
+const MAX_FILE = 6 * 1024 * 1024;
+const drop = $("drop");
+["dragenter", "dragover"].forEach(e => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(e => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (ev) => { const f = ev.dataTransfer && ev.dataTransfer.files[0]; if (f) wzImportFile(f); });
+$("w-file").onchange = () => { const f = $("w-file").files[0]; if (f) wzImportFile(f); $("w-file").value = ""; };
+const readAsDataUrl = (blob) => new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => ko(r.error); r.readAsDataURL(blob); });
+async function shrinkImage(file) {
+  // Photo de téléphone : réduite à 2000 px et recompressée, pour un envoi rapide même en 3G
+  try {
+    const img = await createImageBitmap(file), k = Math.min(1, 2000 / Math.max(img.width, img.height));
+    const c = el("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    return { name: file.name.replace(/\.[^.]+$/, "") + ".jpg", data: c.toDataURL("image/jpeg", .85) };
+  } catch { return { name: file.name, data: await readAsDataUrl(file) }; }
+}
+const fmtSize = (n) => n > 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " Mo" : Math.max(1, Math.round(n / 1024)) + " Ko";
+async function wzImportFile(file) {
+  say("wz-msg", "");
+  const ok = /\.(docx|pdf|jpe?g|png|webp|txt)$/i.test(file.name) || /^image\//.test(file.type);
+  if (!ok) return say("wz-msg", t("Format non pris en charge. Utilisez un fichier Word (.docx), PDF ou une photo."));
+  if (/\.doc$/i.test(file.name)) return say("wz-msg", t("Enregistrez d'abord le document au format .docx (Word récent), puis importez-le."));
+  const isImg = /^image\//.test(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name);
+  if (!isImg && file.size > MAX_FILE) return say("wz-msg", t("Fichier trop lourd ({0}). 6 Mo maximum.", fmtSize(file.size)));
+  $("file-chip").replaceChildren(el("div", { className: "file-chip" },
+    el("span", { className: "badge b-role", textContent: (file.name.split(".").pop() || "").toUpperCase() }),
+    el("span", { className: "nm", textContent: file.name }), el("span", { className: "small muted", textContent: fmtSize(file.size) })));
+  const payload = isImg ? await shrinkImage(file) : { name: file.name, data: await readAsDataUrl(file) };
+  if (payload.data.length > MAX_FILE * 1.37) return say("wz-msg", t("Fichier trop lourd ({0}). 6 Mo maximum.", fmtSize(file.size)));
+  await wzExtract({ mode: "file", file: payload });
+}
+// Site internet : jusqu'à 3 adresses
+$("url-add").onclick = () => {
+  const n = $("url-list").children.length; if (n >= 3) return;
+  const inp = el("input", { type: "url", inputMode: "url", maxLength: 300, placeholder: t("Ex. www.monsite.bj/contact") });
+  inp.id = "w-url-" + n; $("url-list").append(el("div", { className: "url-row" }, inp)); inp.focus();
+  if (n + 1 >= 3) $("url-add").hidden = true;
+};
+$("url-go").onclick = () => {
+  const urls = [...$("url-list").querySelectorAll("input")].map(i => i.value.trim()).filter(Boolean);
+  if (!urls.length) { $("w-url-0").focus(); return say("wz-msg", t("Indiquez l'adresse de votre site internet.")); }
+  if (urls.some(u => !/^(https?:\/\/)?[\w-]+(\.[\w-]+)+([/?#].*)?$/i.test(u))) return say("wz-msg", t("Cette adresse ne semble pas valide. Exemple : www.monsite.bj"));
+  say("wz-msg", ""); return withLoading($("url-go"), () => wzExtract({ mode: "url", urls }));
+};
+
+// Lecture par l'assistant, puis remplissage des thèmes (rien n'est publié avant l'étape 4)
+const IMPORT_ERR = {
+  rate_limited: "Limite atteinte : 15 lectures par jour pour une organisation. Réessayez demain ou remplissez vous-même.",
+  too_large: "Fichier trop lourd. 6 Mo maximum.",
+  unsupported_type: "Format non pris en charge. Utilisez un fichier Word (.docx), PDF ou une photo.",
+  unreadable: "Nous n'avons pas pu lire ce document. Essayez un PDF, une photo plus nette, ou remplissez vous-même.",
+  not_configured: "La lecture automatique est momentanément indisponible. Remplissez vos informations vous-même, ou réessayez plus tard.",
+  ai_unreachable: "La lecture automatique est momentanément indisponible. Remplissez vos informations vous-même, ou réessayez plus tard.",
+  ai_error: "La lecture n'a pas abouti. Réessayez, ou remplissez vous-même.",
+  forbidden: "Seuls le propriétaire et les membres « Rédaction » peuvent importer des informations."
+};
+function readingAnim(on) {
+  const box = $("reading"); clearInterval(WZ.readTimer);
+  if (!on) { box.querySelectorAll("li").forEach(li => li.className = "ok"); setTimeout(() => { box.hidden = true; }, 500); return; }
+  box.hidden = false; let i = 0; const lis = [...box.querySelectorAll("li")];
+  const step = () => { lis.forEach((li, k) => li.className = k < i ? "ok" : k === i ? "on" : ""); if (i < lis.length - 1) i++; };
+  step(); WZ.readTimer = setInterval(step, 3500);
+  box.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
+}
+async function wzExtract(body) {
+  $("reading").querySelector('[data-r="1"] span').textContent = body.mode === "url" ? t("Lecture de votre site") : t("Lecture du document");
+  readingAnim(true);
+  const topics = (WZ_TOPICS[WZ.org.kind] || WZ_TOPICS.default).map(([label, question]) => ({ label, question }));
+  let data, error;
+  try { ({ data, error } = await sb.functions.invoke("extract-info", { body: { ...body, org_id: WZ.org.org_id, topics } })); }
+  catch (e) { error = e; }
+  let status = data && data.status;
+  if (error) { try { status = (await error.context.json()).status; } catch { status = /fetch|network/i.test(String(error.message)) ? "net" : "ai_error"; } }
+  if (status !== "ok") {
+    readingAnim(false); $("reading").hidden = true;
+    say("wz-msg", status === "net" ? t("Connexion impossible. Vérifiez votre accès à Internet.") : t(IMPORT_ERR[status] || IMPORT_ERR.ai_error));
+    return;
+  }
+  readingAnim(false);
+  WZ.imported = true; wzOpenEditor();
+  let n = 0;
+  for (const e of data.entries || []) {
+    if (!e.answer) continue;
+    const ta = wzTopic(e.label, e.question, ""); if (!ta) continue;
+    const box = ta.closest(".w-topic");
+    const mine = ta.value.trim();
+    ta.value = mine && box.dataset.prefill !== "1" && mine !== e.answer && !e.answer.includes(mine) ? mine + "\n" + e.answer : e.answer;
+    delete box.dataset.prefill; grow(ta);
+    box.classList.remove("imported"); void box.offsetWidth; box.classList.add("imported");
+    box.style.animationDelay = REDUCED ? "0s" : (n * 70) + "ms";
+    if (!box.querySelector(".imp")) box.querySelector(".t").append(el("span", { className: "imp", textContent: t("Importé") }));
+    ta.dispatchEvent(new Event("input")); n++;
+  }
+  // Message d'accueil proposé par la source, si le partenaire n'a pas déjà écrit le sien
+  const dflt = t("Bienvenue chez {0} ! Posez vos questions pratiques : horaires, services, tarifs, contacts… Je vous réponds jour et nuit.", WZ.org.name);
+  if (data.welcome && (!$("w-welcome").value.trim() || $("w-welcome").value.trim() === dflt)) $("w-welcome").value = data.welcome;
+  if (data.public_name && $("w-pub").value.trim() === WZ.org.name && data.public_name.length >= 2) $("w-pub").value = data.public_name;
+  wzStep2Changed(); wzCount();
+  $("import-msg").replaceChildren(n
+    ? el("div", { className: "msg ok" }, el("b", { textContent: t(n > 1 ? "{0} informations trouvées." : "{0} information trouvée.", n) }), " " + t("Relisez-les et corrigez si besoin : c'est vous qui validez. Complétez les thèmes restés vides."))
+    : el("div", { className: "msg info", textContent: t("Aucune information pratique n'a été trouvée. Complétez les thèmes ci-dessous vous-même.") }));
+  $("import-msg").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+}
+
+// ---------- Étape 3 : aperçu en direct de la page visiteur ----------
+function wzPreview() {
+  $("pv-name").textContent = $("w-pub").value.trim() || (WZ.org && WZ.org.name) || "";
+  $("pv-welcome").textContent = $("w-welcome").value.trim() || t("(pas de message d'accueil)");
+  const topics = [...$("w-entries").querySelectorAll(".w-topic.filled .t")].slice(0, 4).map(n => n.firstChild ? n.firstChild.textContent : n.textContent);
+  $("pv-chips").replaceChildren(...topics.map(x => el("span", { textContent: x })));
+}
+["w-pub", "w-welcome"].forEach(id => $(id).addEventListener("input", wzPreview));
+
 function wzSummary() {
   const n = wzCount();
   $("w-summary").replaceChildren(
@@ -950,6 +1326,29 @@ function wzSummary() {
     el("p", { className: "small", textContent: t("{0} informations seront publiées. Vous pourrez les modifier à tout moment.", n) }));
   $("w-generate").hidden = WZ.done; $("w-result").hidden = !WZ.done;
   if (WZ.done) $("wz-prev").hidden = true;
+}
+
+// Jauge du mois offert : jours restants sur 30
+function trialGauge(endsAt, note) {
+  const left = Math.max(0, Math.ceil((new Date(endsAt) - Date.now()) / 86400000));
+  const fill = el("i"), soon = left <= 5;
+  const box = el("div", { className: "trial" + (soon ? " soon" : "") },
+    el("div", { className: "top" }, el("span", { textContent: t("Mois offert") }), el("span", {}, el("span", { className: "days", textContent: String(left) }), " " + t(left > 1 ? "jours restants" : "jour restant"))),
+    el("div", { className: "track" }, fill),
+    el("p", { textContent: note || t("Gratuit jusqu'au {0}.", fmtDay(endsAt)) }));
+  requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = Math.min(100, Math.round(left / 30 * 100)) + "%"; }));
+  return box;
+}
+// Petite fête à l'apparition du code QR
+function burst() {
+  if (REDUCED) return;
+  const b = $("burst"), colors = ["#0b8a7c", "#ef6f45", "#f0b04a", "#3a55c7", "#12805c"];
+  b.replaceChildren(...Array.from({ length: 28 }, (_, i) => {
+    const a = (i / 28) * Math.PI * 2, d = 110 + Math.random() * 90, n = el("i");
+    n.style.cssText = `--x:${Math.cos(a) * d}px;--y:${Math.sin(a) * d}px;--r:${Math.random() * 540 - 270}deg;background:${colors[i % colors.length]};animation-delay:${Math.random() * .12}s`;
+    return n;
+  }));
+  setTimeout(() => b.replaceChildren(), 1500);
 }
 
 // Étape 4 : publication, code QR et mois offert
@@ -962,16 +1361,18 @@ const TRIAL_REFUSED = {
   address_required: "Indiquez l'adresse complète de l'organisation."
 };
 $("w-generate").onclick = async () => {
-  const btn = $("w-generate"); btn.disabled = true; say("wz-msg", "");
+  const btn = $("w-generate"); btn.disabled = true; btn.classList.add("loading"); say("wz-msg", "");
   try {
     if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
     const r = await rpcOrThrow("complete_setup", { p_org: WZ.org.org_id });
     WZ.done = true; WZ.slug = r.slug;
     drawQr($("w-canvas"), r.slug, $("w-pub").value.trim() || WZ.org.name);
+    setTimeout(burst, 250);
     $("w-open").href = VISITOR_URL + r.slug;
     const tr = r.trial || {};
     let box;
-    if (tr.granted) box = el("div", { className: "msg ok" }, el("b", { textContent: t("Votre page est en ligne !") }), el("div", { textContent: t("Votre mois offert est actif jusqu'au {0}. Vous recevrez un rappel par e-mail 5 jours avant la fin.", fmtDay(r.trial_ends_at)) }));
+    if (tr.granted) box = el("div", {}, el("div", { className: "msg ok" }, el("b", { textContent: t("Votre page est en ligne !") }), el("div", { textContent: t("Imprimez votre code QR et affichez-le à l'accueil : vos visiteurs peuvent déjà poser leurs questions.") })),
+      trialGauge(r.trial_ends_at, t("Rien à payer maintenant. Les informations de paiement vous seront données à la fin du mois offert, le {0} ; un rappel vous sera envoyé par e-mail 5 jours avant.", fmtDay(r.trial_ends_at))));
     else if (r.live) box = el("div", { className: "msg ok" }, el("b", { textContent: t("Votre page est en ligne !") }));
     else box = el("div", { className: "msg info" },
       el("b", { textContent: t("Votre code QR est prêt.") }),
@@ -987,7 +1388,7 @@ $("w-generate").onclick = async () => {
     wzSummary();
     TRIAL_OK = false;
   } catch (e) { say("wz-msg", errText(e)); }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; btn.classList.remove("loading"); }
 };
 $("w-save-img").onclick = async () => {
   const btn = $("w-save-img"), name = "QR-" + WZ.slug + ".png", dataUrl = $("w-canvas").toDataURL("image/png");
@@ -1028,7 +1429,11 @@ async function refreshAfterSetup(o) {
 
 // Ouvrir l'assistant : nouvelle inscription, ou reprise d'une organisation inachevée
 async function openSetup(o) {
-  Object.assign(WZ, { org: null, ctx: null, step: 1, timers: {}, jobs: {}, inflight: 0, failed: false, saved: false, done: false, slug: null });
+  Object.assign(WZ, { org: null, ctx: null, step: 1, timers: {}, jobs: {}, inflight: 0, failed: false, saved: false, done: false, slug: null, method: null, imported: false });
+  document.querySelectorAll(".method").forEach(b => b.setAttribute("aria-pressed", "false"));
+  ["m-file", "m-url", "w-editor", "reading"].forEach(id => $(id).hidden = true);
+  $("file-chip").replaceChildren(); $("import-msg").replaceChildren();
+  $("url-list").replaceChildren($("url-list").firstElementChild); $("w-url-0").value = ""; $("url-add").hidden = false;
   ["w-name", "w-address", "w-phone", "w-cc", "w-cur", "w-pub", "w-welcome"].forEach(id => $(id).value = "");
   $("w-kind").disabled = $("w-country").disabled = false; $("w-other").hidden = true;
   $("w-entries").replaceChildren(); $("w-trial").replaceChildren(); say("w-share-msg", ""); say("wz-msg", "");
@@ -1059,9 +1464,9 @@ async function openSetup(o) {
   wzState();
   // Reprise à la première étape incomplète
   if ($("w-address").value.trim().length < 10 || !phoneOk($("w-phone").value)) return wzShow(1);
-  if (!WZ.ctx) { wzStep2Changed(); return wzShow(2); }
+  if (!WZ.ctx) { wzStep2Changed(); if (!(await wzFlush()) || !WZ.ctx) return wzShow(1); }
   await wzLoadEntries();
-  return wzShow(wzCount() >= 3 ? 4 : 3);
+  return wzShow(wzCount() >= 3 ? 3 : 2);
 }
 $("start-setup").onclick = () => openSetup(null);
 function refreshResume() {
@@ -1089,11 +1494,20 @@ async function loadSubscription() {
   const { data: org } = await sb.from("organizations").select("status, plan, paid_until, trial_ends_at, created_by").eq("id", current.org_id).maybeSingle();
   const box = $("sub-state");
   const inTrial = org && org.trial_ends_at && org.paid_until && new Date(org.paid_until).getTime() === new Date(org.trial_ends_at).getTime();
+  $("pay-zone").hidden = IN_APP;
   if (inTrial) {
     const over = new Date(org.trial_ends_at) < new Date();
-    box.replaceChildren(el("div", { className: "msg " + (over ? "err" : "ok"),
-      textContent: over ? t(IN_APP ? "Mois offert terminé le {0}." : "Mois offert terminé le {0}. Choisissez une formule pour remettre votre page en ligne.", fmtDay(org.trial_ends_at))
-                        : t(IN_APP ? "Mois offert : votre accès gratuit est actif jusqu'au {0}." : "Mois offert : votre accès gratuit est actif jusqu'au {0}. Choisissez une formule avant cette date pour garder votre page en ligne sans interruption.", fmtDay(org.trial_ends_at)) }));
+    const daysLeft = Math.ceil((new Date(org.trial_ends_at) - Date.now()) / 86400000);
+    if (over) {
+      box.replaceChildren(el("div", { className: "pay-head" }, el("b", { textContent: t("Votre mois offert est terminé") }),
+        el("span", { textContent: t(IN_APP ? "Il a pris fin le {0}." : "Il a pris fin le {0}. Choisissez votre formule ci-dessous pour remettre votre page en ligne : Mobile Money, carte ou Wave.", fmtDay(org.trial_ends_at)) })));
+    } else if (daysLeft <= 5) {
+      box.replaceChildren(trialGauge(org.trial_ends_at, t(IN_APP ? "Votre mois offert se termine le {0}." : "Votre mois offert se termine le {0}. Choisissez dès maintenant votre formule pour garder votre page en ligne sans interruption.", fmtDay(org.trial_ends_at))));
+    } else {
+      // Période de gratuité : aucune information de paiement à donner
+      box.replaceChildren(trialGauge(org.trial_ends_at, t("Profitez de KnowMi gratuitement jusqu'au {0}. Les informations de paiement vous seront données à la fin du mois offert ; un rappel vous sera envoyé par e-mail 5 jours avant.", fmtDay(org.trial_ends_at))));
+      $("pay-zone").hidden = true;
+    }
     $("s-plan").value = org.plan;
   } else if (org && org.plan && org.paid_until) {
     const p = PLANS.find(x => x.id === org.plan);
