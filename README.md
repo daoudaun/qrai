@@ -14,3 +14,15 @@ La clé Supabase présente dans ces pages est la clé *publishable* (publique pa
   Réservé au propriétaire et aux membres « Rédaction » ; 15 lectures par organisation et par jour.
   Nécessite le secret `ANTHROPIC_API_KEY` (le même que la fonction `ask`).
 - `fiche-knowmi.docx` : modèle de fiche d'informations à télécharger depuis l'espace partenaire.
+
+## Fiches-modèles par métier
+
+`modeles.js` contient 18 exemples de fiches (santé, commerce, services, écoles, institutions, événements), en français et en anglais. Dans l'espace partenaire, étape « Vos informations », le choix **« Partir d'un exemple »** pré-remplit les thèmes ; tout ce qui est `[entre crochets]` doit être remplacé ou effacé avant de pouvoir continuer. `{org}` dans un message d'accueil est remplacé par le nom de l'organisation.
+
+Les versions Word (`modeles/<id>.docx`) sont générées à partir du même fichier :
+
+```
+node outils/build-modeles.js modeles.js <qr-playstore.png> modeles
+```
+
+Pour ajouter un métier : ajoutez une entrée dans `modeles.js`, puis régénérez les fiches Word.

@@ -186,6 +186,23 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .method .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--surface);color:var(--accent);border:1px solid var(--line)}
 .method[aria-pressed="true"] .ic{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .method b{font-size:15px} .method span{font-size:13px;color:var(--muted);line-height:1.4}
+#tpl-list{margin-top:6px}
+#tpl-list h4{margin:16px 0 8px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.tpl-grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.tpl{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:3px;padding:11px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);transition:transform var(--t1) var(--ease),border-color var(--t2),background-color var(--t2)}
+.tpl b{font-size:14px;line-height:1.25} .tpl span{font-size:12px;color:var(--muted);line-height:1.35}
+.tpl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (hover:hover){.tpl:hover{border-color:var(--accent);transform:translateY(-1px)}}
+.tpl:active{transform:scale(.98)}
+.tpl[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tpl-none{padding:14px 0;color:var(--muted);font-size:14px}
+.tpl-chosen{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:var(--accent-soft);border:1px solid var(--accent);margin-top:10px}
+.tpl-chosen b{flex:1;min-width:150px}
+.w-topic.todo{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 7%, var(--surface2))}
+.w-topic.todo .t::before{background:var(--warn)}
+.w-topic .ex{font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-soft);padding:1px 8px;border-radius:999px;margin-left:auto}
+.w-topic .todo-hint{display:none;font-size:12px;color:var(--warn);margin-top:4px}
+.w-topic.todo .todo-hint{display:block}
 .method .tag{align-self:flex-start;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--good-soft);color:var(--good)}
 .pane{margin-top:12px;animation:rise var(--t2) var(--ease-out) both}
 .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:26px 16px;border:2px dashed color-mix(in srgb,var(--accent) 45%, var(--line));border-radius:16px;background:var(--surface2);cursor:pointer;transition:border-color var(--t2),background-color var(--t2),transform var(--t1)}
@@ -450,6 +467,11 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
             <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg></span>
             <b>Mon site internet</b><span>Collez le lien de votre site : nous en lisons les pages utiles.</span>
           </button>
+          <button class="method" type="button" data-m="tpl" aria-pressed="false">
+            <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7"/></svg></span>
+            <span class="tag">Idéal pour démarrer</span>
+            <b>Partir d'un exemple</b><span>Une fiche prête pour votre métier : vous n'avez plus qu'à l'adapter.</span>
+          </button>
           <button class="method" type="button" data-m="manual" aria-pressed="false">
             <span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></span>
             <b>Je remplis moi-même</b><span>Répondez aux questions les plus fréquentes, thème par thème.</span>
@@ -476,6 +498,13 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
           <button class="btn ghost small" type="button" id="url-add" style="margin-top:8px">+ Ajouter une autre page (contact, tarifs…)</button>
           <button class="btn" type="button" id="url-go" style="width:100%">Lire mon site</button>
           <p class="small muted" style="margin-top:8px">Nous lisons la page d'accueil et les pages utiles du même site (contact, horaires, services, tarifs). Rien n'est publié sans votre validation.</p>
+        </div>
+
+        <div class="pane" id="m-tpl" hidden>
+          <label for="tpl-search">Votre métier ou votre événement</label>
+          <input id="tpl-search" type="search" maxlength="60" placeholder="Ex. pharmacie, école, mariage…" autocomplete="off">
+          <div id="tpl-list" data-i18n-skip></div>
+          <p class="small muted" data-i18n-html="tpl-help" style="margin-top:10px">Tout ce qui est <b>[entre crochets]</b> est un exemple à remplacer par vos vraies informations. Votre code QR ne peut pas être créé tant qu'il en reste.</p>
         </div>
 
         <div class="reading" id="reading" hidden aria-live="polite">
@@ -667,6 +696,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
   <p class="small muted" style="text-align:center;margin-top:30px">KnowMi · données hébergées dans l'Union européenne (Paris)</p>
 </div>
 <script src="i18n.js"></script>
+<script src="modeles.js"></script>
 
 <script>
 const t = window.KM ? KM.t : (s) => s, LOC = window.KM ? KM.locale : "fr-FR";
@@ -1056,18 +1086,23 @@ function wzCount() {
   return n;
 }
 function grow(ta) { ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight + 2, 420) + "px"; }
-function wzTopic(label, question, answer) {
+// Exemple encore à adapter : un passage [entre crochets]
+const HAS_TODO = /\[[^\]\n]{1,200}\]/;
+function wzTopic(label, question, answer, disp) {
   const key = slugKey(label);
   const existing = $("w-entries").querySelector('[data-key="' + key + '"] textarea');
   if (existing) return existing;
-  const ta = el("textarea", { rows: 2, maxLength: 20000, value: answer || "", placeholder: t("Votre réponse…") });
-  const box = el("div", { className: "w-topic" + (answer ? " filled" : "") },
-    el("div", { className: "t", textContent: t(label) }), el("div", { className: "q", textContent: t(question) }), ta);
+  // disp : libellé et question déjà traduits (fiches-modèles) ; sinon traduction de l'interface
+  if (disp) question = disp.q;
+  const ta = el("textarea", { rows: 2, maxLength: 20000, value: answer || "", placeholder: t("Votre réponse… (laissez vide pour ne pas l'utiliser)") });
+  const box = el("div", { className: "w-topic" + (answer ? " filled" : "") + (HAS_TODO.test(answer || "") ? " todo" : "") },
+    el("div", { className: "t", textContent: disp ? disp.l : t(label) }), el("div", { className: "q", textContent: disp ? disp.q : t(question) }), ta,
+    el("div", { className: "todo-hint", textContent: t("Remplacez ce qui est [entre crochets] par vos informations, ou effacez-le.") }));
   box.dataset.key = key;
   ta.addEventListener("input", (ev) => {
     if (ev.isTrusted) delete box.dataset.prefill;
     grow(ta);
-    box.classList.toggle("filled", !!ta.value.trim()); wzCount();
+    box.classList.toggle("filled", !!ta.value.trim()); box.classList.toggle("todo", HAS_TODO.test(ta.value)); wzCount();
     const answerNow = ta.value;
     wzLocal("org." + WZ.org.org_id + ".e." + key, { label, question, answer: answerNow });
     wzSchedule("e:" + key, async () => {
@@ -1096,16 +1131,16 @@ async function wzLoadEntries() {
     const byId = Object.fromEntries(items.data.map(i => [i.id, i.business_key]));
     vers.data.forEach(v => { const k = byId[v.item_id]; if (k && !latest[k]) latest[k] = v; });
   }
-  const topics = WZ_TOPICS[WZ.org.kind] || WZ_TOPICS.default;
+  if (!WZ.tpl) WZ.tpl = tplById(wzLocal("org." + WZ.org.org_id + ".tpl"));
   const s1 = { address: WZ.org.address || "", phone: WZ.org.contact_phone || "" };
   const fresh = [], prefilled = [];
-  topics.forEach(([label, q]) => {
+  wzTopics().forEach(({ label, question: q, disp }) => {
     const key = slugKey(label), saved = latest[key], local = wzLocal("org." + WZ.org.org_id + ".e." + key);
     let ans = local ? local.answer : saved ? saved.answer : "";
     // Pré-remplissage avec l'adresse et le téléphone de l'étape 1
     if (!saved && !local && key.startsWith("adresse") && s1.address) { ans = s1.address; fresh.push(key); prefilled.push(key); }
     if (!saved && !local && key.startsWith("contacts") && s1.phone) { ans = t("Accueil : {0}", s1.phone); fresh.push(key); prefilled.push(key); }
-    wzTopic(label, q, ans);
+    wzTopic(label, q, ans, disp);
     if (local) fresh.push(key);
   });
   // Thèmes ajoutés par le partenaire
@@ -1171,11 +1206,20 @@ async function wzNext() {
   }
   if (WZ.step === 2) {
     if (wzCount() < 3) return say("wz-msg", t("Remplissez au moins 3 informations pour que l'assistant puisse répondre à vos visiteurs."));
+    const todo = wzFirstTodo();
+    if (todo) {
+      say("wz-msg", t("Il reste des exemples [entre crochets] à remplacer par vos vraies informations (ou à effacer)."));
+      todo.closest(".w-topic").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
+      setTimeout(() => { todo.focus({ preventScroll: true }); const m = HAS_TODO.exec(todo.value); if (m) todo.setSelectionRange(m.index, m.index + m[0].length); }, 350);
+      return;
+    }
     if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
     return wzShow(3);
   }
   if (WZ.step === 3) {
     if ($("w-pub").value.trim().length < 2) return say("wz-msg", t("Indiquez le nom affiché aux visiteurs."));
+    if (HAS_TODO.test($("w-pub").value) || HAS_TODO.test($("w-welcome").value)) { $(HAS_TODO.test($("w-pub").value) ? "w-pub" : "w-welcome").focus(); return say("wz-msg", t("Il reste des exemples [entre crochets] à remplacer par vos vraies informations (ou à effacer).")); }
+    if (wzFirstTodo()) return wzShow(2);
     wzStep2Changed();
     if (!(await wzFlush())) return say("wz-msg", t("Pas de réseau : vos saisies sont gardées. Réessayez quand la connexion revient."));
     return wzShow(4);
@@ -1184,13 +1228,14 @@ async function wzNext() {
 
 // ---------- Étape 2 : trois façons de remplir ses informations ----------
 function wzMethodInit() {
-  if (wzCount() >= 3 && !WZ.method) { WZ.imported = true; wzMethod("manual", true); }
-  $("tpl-link").hidden = WZ.org && WZ.org.kind !== "health";
+  if ((wzCount() >= 3 || WZ.tpl) && !WZ.method) { WZ.imported = true; wzMethod(WZ.tpl ? "tpl" : "manual", true); }
+  tplLink();
 }
 function wzMethod(m, quiet) {
   WZ.method = m;
   document.querySelectorAll(".method").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m));
-  $("m-file").hidden = m !== "file"; $("m-url").hidden = m !== "url";
+  $("m-file").hidden = m !== "file"; $("m-url").hidden = m !== "url"; $("m-tpl").hidden = m !== "tpl";
+  if (m === "tpl") { tplRender(); if (WZ.imported) wzOpenEditor(); else { $("w-editor").hidden = true; $("wz-next").hidden = true; } if (!quiet) setTimeout(() => $("m-tpl").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" }), 60); return; }
   if (m === "manual") wzOpenEditor();
   else if (!WZ.imported) { $("w-editor").hidden = true; $("wz-next").hidden = true; }
   else if (!quiet) (m === "url" ? $("w-url-0") : $("drop")).scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "center" });
@@ -1203,6 +1248,98 @@ function wzOpenEditor() {
   if (WZ.step === 2) $("wz-next").hidden = false;
 }
 document.querySelectorAll(".method").forEach(b => b.onclick = () => wzMethod(b.dataset.m));
+
+// ---------- Fiches-modèles par métier (modeles.js) ----------
+const MODELES = window.KM_MODELES || { groups: {}, list: [] };
+const EN = () => !!(window.KM && KM.lang === "en");
+const L2 = (pair) => EN() ? pair[1] : pair[0];
+const tplById = (id) => MODELES.list.find(m => m.id === id) || null;
+// Thèmes de l'assistant : ceux du modèle choisi, sinon les thèmes par défaut du type d'organisation
+function wzTopics() {
+  if (WZ.tpl) return WZ.tpl.topics.map(x => ({ label: x[0], question: x[1], answer: EN() ? x[5] : x[2], disp: { l: EN() ? x[3] : x[0], q: EN() ? x[4] : x[1] } }));
+  return (WZ_TOPICS[WZ.org.kind] || WZ_TOPICS.default).map(([label, question]) => ({ label, question }));
+}
+const fold = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+function tplRender() {
+  const q = fold($("tpl-search").value.trim()), kind = WZ.org && WZ.org.kind;
+  const match = (m) => !q || [m.name[0], m.name[1], m.desc[0], m.desc[1], MODELES.groups[m.g][0]].some(s => fold(s).includes(q));
+  const card = (m) => {
+    const b = el("button", { className: "tpl", type: "button" }, el("b", { textContent: L2(m.name) }), el("span", { textContent: L2(m.desc) }));
+    b.setAttribute("aria-pressed", String(!!(WZ.tpl && WZ.tpl.id === m.id)));
+    b.onclick = () => wzApplyTemplate(m);
+    return b;
+  };
+  const out = [];
+  if (WZ.tpl) {
+    const dl = el("a", { className: "btn ghost small", href: "modeles/" + WZ.tpl.id + ".docx", textContent: t("Version Word") });
+    dl.setAttribute("download", "");
+    out.push(el("div", { className: "tpl-chosen" }, el("b", { textContent: t("Exemple choisi : {0}", L2(WZ.tpl.name)) }), dl));
+  }
+  const list = MODELES.list.filter(match);
+  const mine = q ? [] : list.filter(m => m.kinds[0] === kind);
+  if (mine.length) out.push(el("h4", { textContent: t("Suggérés pour vous") }), el("div", { className: "tpl-grid" }, ...mine.map(card)));
+  Object.keys(MODELES.groups).forEach(g => {
+    const items = list.filter(m => m.g === g && !mine.includes(m));
+    if (items.length) out.push(el("h4", { textContent: L2(MODELES.groups[g]) }), el("div", { className: "tpl-grid" }, ...items.map(card)));
+  });
+  if (!list.length) out.push(el("div", { className: "tpl-none", textContent: t("Aucun exemple ne correspond. Choisissez le plus proche de votre activité, ou « Je remplis moi-même ».") }));
+  $("tpl-list").replaceChildren(...out);
+}
+$("tpl-search").addEventListener("input", tplRender);
+function tplLink() {
+  // Modèle Word : celui du métier choisi, sinon la fiche santé générique
+  const a = $("tpl-link");
+  if (WZ.tpl) { a.href = "modeles/" + WZ.tpl.id + ".docx"; a.hidden = false; }
+  else { a.href = "fiche-knowmi.docx"; a.hidden = !!(WZ.org && WZ.org.kind !== "health"); }
+}
+function wzApplyTemplate(m) {
+  say("wz-msg", "");
+  const prev = WZ.tpl; WZ.tpl = m;
+  wzLocal("org." + WZ.org.org_id + ".tpl", m.id);
+  WZ.imported = true; wzOpenEditor();
+  // Les thèmes vides de l'ancien jeu de thèmes disparaissent ; ce qui a été écrit est gardé
+  const keys = m.topics.map(x => slugKey(x[0]));
+  const phone = ($("w-phone").value || WZ.org.contact_phone || "").trim(), addr = ($("w-address").value || WZ.org.address || "").trim();
+  $("w-entries").querySelectorAll(".w-topic").forEach(b => {
+    const ta = b.querySelector("textarea");
+    const auto = b.dataset.prefill === "1" && !keys.includes(b.dataset.key);   // reprise automatique de l'étape 1, remplacée par le modèle
+    if (!ta.value.trim() || auto || (prev && b.querySelector(".ex") && ta.value === wzTplAnswer(prev, b.dataset.key))) {
+      if (ta.value.trim()) { ta.value = ""; ta.dispatchEvent(new Event("input")); }
+      b.remove();
+    }
+  });
+  let n = 0;
+  wzTopics().forEach(({ label, question, answer, disp }) => {
+    const ta = wzTopic(label, question, "", disp), box = ta.closest(".w-topic");
+    // Réordonner selon le modèle
+    $("w-entries").append(box);
+    const key = slugKey(label);
+    if (box.dataset.prefill === "1" && (key.startsWith("contacts") || key.startsWith("adresse"))) { ta.value = ""; delete box.dataset.prefill; }
+    if (ta.value.trim()) return;                      // vraie information déjà saisie : on la garde
+    // Adresse et téléphone de l'étape 1 repris dans le modèle
+    if (key.startsWith("adresse") && addr) answer = addr;
+    if (key.startsWith("contacts") && phone && answer) answer = answer.replace(/\[\+?\d[^\]]*\]/, phone);
+    if (!answer) return;
+    ta.value = answer; grow(ta);
+    if (!box.querySelector(".ex") && HAS_TODO.test(answer)) box.querySelector(".t").append(el("span", { className: "ex", textContent: t("Exemple") }));
+    box.classList.remove("imported"); void box.offsetWidth; box.classList.add("imported");
+    box.style.animationDelay = REDUCED ? "0s" : (n * 60) + "ms";
+    ta.dispatchEvent(new Event("input")); n++;
+  });
+  // Message d'accueil du modèle, avec le nom de l'organisation déjà en place
+  const dflt = t("Bienvenue chez {0} ! Posez vos questions pratiques : horaires, services, tarifs, contacts… Je vous réponds jour et nuit.", WZ.org.name);
+  const cur = $("w-welcome").value.trim();
+  if (!cur || cur === dflt || (prev && cur === tplWelcome(prev))) { $("w-welcome").value = tplWelcome(m); wzStep2Changed(); }
+  tplRender(); tplLink(); wzCount();
+  $("import-msg").replaceChildren(el("div", { className: "msg info" },
+    el("b", { textContent: t("Exemple « {0} » chargé.", L2(m.name)) }), " ",
+    t("Remplacez tout ce qui est [entre crochets] par vos vraies informations, ou effacez-le. Videz une réponse pour ne pas l'utiliser, et ajoutez ce qui manque.")));
+  $("import-msg").scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "start" });
+}
+const wzTplAnswer = (m, key) => { const x = m.topics.find(x => slugKey(x[0]) === key); return x ? (EN() ? x[5] : x[2]) : null; };
+const tplWelcome = (m) => L2(m.welcome).split("{org}").join((WZ.org && WZ.org.name) || "");
+// Premier passage encore à adapter (thèmes, puis nom affiché et message d'accueil)
+function wzFirstTodo() { return [...$("w-entries").querySelectorAll(".w-topic textarea")].find(ta => HAS_TODO.test(ta.value)) || null; }
 
 // Fichier : sélection, glisser-déposer, photo réduite avant l'envoi
 const MAX_FILE = 6 * 1024 * 1024;
@@ -1272,7 +1409,7 @@ function readingAnim(on) {
 async function wzExtract(body) {
   $("reading").querySelector('[data-r="1"] span').textContent = body.mode === "url" ? t("Lecture de votre site") : t("Lecture du document");
   readingAnim(true);
-  const topics = (WZ_TOPICS[WZ.org.kind] || WZ_TOPICS.default).map(([label, question]) => ({ label, question }));
+  const topics = wzTopics().map(({ label, question, disp }) => ({ label, question: disp ? disp.q : question }));
   let data, error;
   try { ({ data, error } = await sb.functions.invoke("extract-info", { body: { ...body, org_id: WZ.org.org_id, topics } })); }
   catch (e) { error = e; }
@@ -1429,9 +1566,10 @@ async function refreshAfterSetup(o) {
 
 // Ouvrir l'assistant : nouvelle inscription, ou reprise d'une organisation inachevée
 async function openSetup(o) {
-  Object.assign(WZ, { org: null, ctx: null, step: 1, timers: {}, jobs: {}, inflight: 0, failed: false, saved: false, done: false, slug: null, method: null, imported: false });
+  Object.assign(WZ, { org: null, ctx: null, step: 1, timers: {}, jobs: {}, inflight: 0, failed: false, saved: false, done: false, slug: null, method: null, imported: false, tpl: null });
+  $("tpl-search").value = "";
   document.querySelectorAll(".method").forEach(b => b.setAttribute("aria-pressed", "false"));
-  ["m-file", "m-url", "w-editor", "reading"].forEach(id => $(id).hidden = true);
+  ["m-file", "m-url", "m-tpl", "w-editor", "reading"].forEach(id => $(id).hidden = true);
   $("file-chip").replaceChildren(); $("import-msg").replaceChildren();
   $("url-list").replaceChildren($("url-list").firstElementChild); $("w-url-0").value = ""; $("url-add").hidden = false;
   ["w-name", "w-address", "w-phone", "w-cc", "w-cur", "w-pub", "w-welcome"].forEach(id => $(id).value = "");
@@ -1466,7 +1604,7 @@ async function openSetup(o) {
   if ($("w-address").value.trim().length < 10 || !phoneOk($("w-phone").value)) return wzShow(1);
   if (!WZ.ctx) { wzStep2Changed(); if (!(await wzFlush()) || !WZ.ctx) return wzShow(1); }
   await wzLoadEntries();
-  return wzShow(wzCount() >= 3 ? 3 : 2);
+  return wzShow(wzCount() >= 3 && !wzFirstTodo() ? 3 : 2);
 }
 $("start-setup").onclick = () => openSetup(null);
 function refreshResume() {

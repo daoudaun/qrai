@@ -484,6 +484,22 @@
     "Quels documents dois-je apporter ?": "Which documents should I bring?",
     // --- Refonte du parcours partenaire (nov. 2026) ---
     "uniquement": "only",
+    // --- Fiches-modèles par métier (nov. 2026) ---
+    "Idéal pour démarrer": "Great to start",
+    "Partir d'un exemple": "Start from an example",
+    "Une fiche prête pour votre métier : vous n'avez plus qu'à l'adapter.": "A ready-made sheet for your trade: just adapt it.",
+    "Votre métier ou votre événement": "Your trade or your event",
+    "Ex. pharmacie, école, mariage…": "E.g. pharmacy, school, wedding…",
+    "Votre réponse… (laissez vide pour ne pas l'utiliser)": "Your answer… (leave empty to skip it)",
+    "Remplacez ce qui est [entre crochets] par vos informations, ou effacez-le.": "Replace what is [in square brackets] with your information, or delete it.",
+    "Version Word": "Word version",
+    "Exemple choisi : {0}": "Chosen example: {0}",
+    "Suggérés pour vous": "Suggested for you",
+    "Aucun exemple ne correspond. Choisissez le plus proche de votre activité, ou « Je remplis moi-même ».": "No example matches. Pick the closest to your business, or “I'll fill it in myself”.",
+    "Exemple": "Example",
+    "Exemple « {0} » chargé.": "“{0}” example loaded.",
+    "Remplacez tout ce qui est [entre crochets] par vos vraies informations, ou effacez-le. Videz une réponse pour ne pas l'utiliser, et ajoutez ce qui manque.": "Replace everything [in square brackets] with your real information, or delete it. Empty an answer to skip it, and add anything missing.",
+    "Il reste des exemples [entre crochets] à remplacer par vos vraies informations (ou à effacer).": "Some examples [in square brackets] still need to be replaced with your real information (or deleted).",
     "Aucune information pratique n'a été trouvée. Complétez les thèmes ci-dessous vous-même.": "No practical information was found. Please fill in the topics below yourself.",
     "Cette adresse ne semble pas valide. Exemple : www.monsite.bj": "This address does not look valid. Example: www.mysite.com",
     "Enregistrez d'abord le document au format .docx (Word récent), puis importez-le.": "First save the document as .docx (recent Word), then import it.",
@@ -549,6 +565,7 @@
 
   // Blocs avec mise en forme (texte rédigé par KnowMi, jamais par un utilisateur)
   var EN_HTML = {
+    "tpl-help": "Everything <b>[in square brackets]</b> is an example to replace with your real information. Your QR code cannot be created while any remain.",
     "code-help": "<b>Two ways to do it:</b><br>• <b>Without clicking</b>: in the e-mail, right-click the “Sign in” button → “Copy link address”, then paste it here.<br>• <b>If you already clicked</b>: a “This site can't be reached” page (localhost) opened. That's normal. Click the address bar of that page, copy the whole address (Ctrl+A then Ctrl+C), then paste it here.",
     "del-text": "This action is <b>permanent</b>. Your account is deleted immediately. Organisations you are the sole owner of are closed: their cards, QR codes, invitations and suggestions are erased, and their QR codes stop working. Payment references are kept for accounting obligations. <a href=\"suppression-compte.html\">Learn more</a>",
     "entries-intro": "The chat answers <b>only</b> with published cards. A card goes through: draft → to approve → published. Nothing is visible until it is published.",
