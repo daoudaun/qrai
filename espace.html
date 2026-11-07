@@ -1104,7 +1104,9 @@ function wzTopic(label, question, answer, disp) {
   ta.addEventListener("input", (ev) => {
     if (ev.isTrusted) delete box.dataset.prefill;
     grow(ta);
-    box.classList.toggle("filled", !!ta.value.trim()); box.classList.toggle("todo", HAS_TODO.test(ta.value)); wzCount();
+    box.classList.toggle("filled", !!ta.value.trim()); box.classList.toggle("todo", HAS_TODO.test(ta.value));
+    const ex = box.querySelector(".ex"); if (ex && !HAS_TODO.test(ta.value)) ex.remove();   // exemple adapté : ce n'est plus un exemple
+    wzCount();
     const answerNow = ta.value;
     wzLocal("org." + WZ.org.org_id + ".e." + key, { label, question, answer: answerNow });
     wzSchedule("e:" + key, async () => {
