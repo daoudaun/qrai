@@ -485,6 +485,8 @@
     // --- Refonte du parcours partenaire (nov. 2026) ---
     "uniquement": "only",
     // --- Fiches-modèles par métier (nov. 2026) ---
+    "Nous venons d'envoyer un code à {0}. Saisissez-le ci-dessous. Pas reçu ? Regardez dans les courriers indésirables.": "We have just sent a code to {0}. Enter it below. Not received? Check your spam folder.",
+    "Ex. 123456": "E.g. 123456",
     "Idéal pour démarrer": "Great to start",
     "Partir d'un exemple": "Start from an example",
     "Une fiche prête pour votre métier : vous n'avez plus qu'à l'adapter.": "A ready-made sheet for your trade: just adapt it.",
